@@ -3,7 +3,7 @@
     "1": {
       "Name": "Postgres-in-container",
       "Group": "Servers",
-      "Port": 5432,
+      "Port": 5433,
       "Username": "postgres",
       "Host": "postgres",
       "SSLMode": "prefer",
