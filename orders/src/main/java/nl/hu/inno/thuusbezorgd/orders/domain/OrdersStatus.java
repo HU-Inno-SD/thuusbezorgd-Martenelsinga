@@ -15,7 +15,7 @@ public enum OrdersStatus {
             case InPreparation -> ReadyForDelivery;
             case ReadyForDelivery -> Underway;
             case Underway -> Delivered;
-            case Delivered -> Disputed;
+            case Delivered -> Delivered;
             case Disputed -> Resolved;
         };
     }
