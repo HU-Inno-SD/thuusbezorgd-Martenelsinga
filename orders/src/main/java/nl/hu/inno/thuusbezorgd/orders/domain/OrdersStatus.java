@@ -1,6 +1,6 @@
 package nl.hu.inno.thuusbezorgd.orders.domain;
 
-public enum OrderStatus {
+public enum OrdersStatus {
     Received,
     InPreparation,
     ReadyForDelivery,
@@ -9,7 +9,7 @@ public enum OrderStatus {
     Disputed,
     Resolved;
 
-    public OrderStatus next() {
+    public OrdersStatus next() {
         return switch (this) {
             case Received -> InPreparation;
             case InPreparation -> ReadyForDelivery;

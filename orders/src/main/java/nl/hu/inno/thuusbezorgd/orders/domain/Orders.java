@@ -31,9 +31,9 @@ public class Orders {
     private Address address;
 
     @Enumerated(EnumType.STRING)
-    private OrderStatus status;
+    private OrdersStatus status;
 
-    public OrderStatus getStatus() {
+    public OrdersStatus getStatus() {
         return status;
     }
 
@@ -48,7 +48,7 @@ public class Orders {
         this.user = u;
         this.orderedDishes = new ArrayList<>();
         this.address = address;
-        this.status = OrderStatus.Received;
+        this.status = OrdersStatus.Received;
     }
 
     public Long getId() {
@@ -89,7 +89,7 @@ public class Orders {
         this.delivery = delivery;
     }
 
-    public void setStatus(OrderStatus status) {
+    public void setStatus(OrdersStatus status) {
         this.status = status;
     }
 
