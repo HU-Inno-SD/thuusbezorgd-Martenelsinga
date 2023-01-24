@@ -1,4 +1,4 @@
-package nl.hu.inno.stock.domain;
+package stock.domain;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

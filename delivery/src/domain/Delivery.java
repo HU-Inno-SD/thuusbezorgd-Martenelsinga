@@ -21,7 +21,7 @@ public class Delivery {
         return rider;
     }
 
-    public Order getOrder() {
+    public Orders getOrder() {
         return order;
     }
 
@@ -29,11 +29,11 @@ public class Delivery {
     private Rider rider;
 
     @ManyToOne
-    private Order order;
+    private Orders order;
 
     protected Delivery(){}
 
-    public Delivery(Order order, Rider rider){
+    public Delivery(Orders order, Rider rider){
         this.order = order;
         this.rider = rider;
     }

@@ -1,10 +1,10 @@
-package nl.hu.inno.stock.presentation;
+package stock.presentation;
 
 import nl.hu.inno.thuusbezorgd.data.IngredientRepository;
 import nl.hu.inno.thuusbezorgd.domain.Dish;
 
 import data.DishRepository;
-import nl.hu.inno.stock.domain.Ingredient;
+import stock.domain.Ingredient;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
