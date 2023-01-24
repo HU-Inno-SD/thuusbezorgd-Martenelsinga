@@ -1,3 +1,5 @@
+package domain;
+
 import org.hibernate.annotations.Entity;
 
 import javax.persistence.*;
