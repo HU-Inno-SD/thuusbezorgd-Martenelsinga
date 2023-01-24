@@ -39,7 +39,7 @@ public class Orders {
 
     @OneToMany(mappedBy = "id.order")
     @Cascade(CascadeType.PERSIST)
-    private List<OrderedDish> orderedDishes;
+    private List<Dish> orderedDishes;
 
     protected Order() {
     }

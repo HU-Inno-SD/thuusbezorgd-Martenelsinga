@@ -21,10 +21,16 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import com.rabbitmq.client.ConnectionFactory;
+import com.rabbitmq.client.Connection;
+import com.rabbitmq.client.Channel;
 
 @RestController
 @RequestMapping("/orders")
 public class OrdersController {
+
+    //Todo:
+    ConnectionFactory factory = new ConnectionFactory();
 
     public record AddressDto(String street, String nr, String city, String zip) {
         public AddressDto(Address a) {
@@ -47,11 +53,11 @@ public class OrdersController {
         }
     }
 
-    public record OrderDto(AddressDto address, List<DishDto> dishes) {
+    public record OrdersDto(AddressDto address, List<DishDto> dishes) {
     }
 
-    public record OrderResponseDto(AddressDto address, List<DishDto> dishes, OrderStatus status, String deliveryUrl) {
-        public static OrderResponseDto fromOrder(Order o) {
+    public record OrdersResponseDto(AddressDto address, List<DishDto> dishes, OrdersStatus status, String deliveryUrl) {
+        public static OrdersResponseDto fromOrders(Orders o) {
             List<Dish> orderedDishes = o.getOrderedDishes();
             List<DishDto> dtos = orderedDishes.stream().map(DishDto::new).collect(Collectors.toList());
 
@@ -59,7 +65,7 @@ public class OrdersController {
         }
     }
 
-    private final OrderRepository orders;
+    private final OrdersRepository orders;
     private final DishRepository dishes;
     private final UserRepository users;
     private final DeliveryService deliveries;
@@ -68,7 +74,7 @@ public class OrdersController {
 
 
     public OrdersController( //Dit begint al aardige constructor overinjection te worden!
-                             OrderRepository orders,
+                             OrdersRepository orders,
                              DishRepository dishes,
                              UserRepository users,
                              DeliveryService deliveries,
@@ -83,24 +89,28 @@ public class OrdersController {
     }
 
     @GetMapping()
-    public List<OrderResponseDto> getOrders(User user) {
-        return this.orders.findByUser(user).stream().map(OrderResponseDto::fromOrder).collect(Collectors.toList());
+    public List<OrdersResponseDto> getOrders(User user) {
+        return this.orders.findByUser(user).stream().map(OrderResponseDto::fromOrders).collect(Collectors.toList());
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<OrderResponseDto> getOrder(User user, @PathVariable long id) {
-        Optional<Order> order = this.orders.findById(id);
-        if(order.isEmpty() || order.get().getUser() != user){
+    public ResponseEntity<OrdersResponseDto> getOrders(User user, @PathVariable long id) {
+        Optional<Orders> orders = this.orders.findById(id);
+        if(orders.isEmpty() || order.get().getUser() != user){
             return ResponseEntity.notFound().build();
         }
 
-        return ResponseEntity.ok(OrderResponseDto.fromOrder(order.get()));
+        return ResponseEntity.ok(OrdersResponseDto.fromOrders(orders.get()));
+    }
+
+    public boolean checkStock(String dish){
+
     }
 
 
     @PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     @Transactional
-    public ResponseEntity<OrderResponseDto> placeOrder(User user, @RequestBody MultiValueMap<String, String> paramMap) throws URISyntaxException {
+    public ResponseEntity<OrdersResponseDto> placeOrders(User user, @RequestBody MultiValueMap<String, String> paramMap) throws URISyntaxException {
         List<DishDto> orderedDishes = new ArrayList<>();
         for (String d : paramMap.get("dish")) {
             long id = Long.parseLong(d);
@@ -114,15 +124,15 @@ public class OrdersController {
 
         //Todo: validate
 
-        return placeOrder(user, new OrderDto(new AddressDto(street, nr, city, zip), orderedDishes));
+        return placeOrders(user, new OrdersDto(new AddressDto(street, nr, city, zip), orderedDishes));
     }
 
 
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
     @Transactional
-    public ResponseEntity<OrderResponseDto> placeOrder(User user, @RequestBody OrderDto newOrder) throws URISyntaxException {
-        Order created = new Order(user, newOrder.address.toAddress());
-        for (DishDto orderedDish : newOrder.dishes()) {
+    public ResponseEntity<OrdersResponseDto> placeOrders(User user, @RequestBody OrdersDto newOrders) throws URISyntaxException {
+        Orders created = new Orders(user, newOrders.address.toAddress());
+        for (DishDto orderedDish : newOrders.dishes()) {
             Optional<Dish> d = this.dishes.findById(orderedDish.id());
             if (d.isPresent()) {
                 created.addDish(d.get());
@@ -132,21 +142,35 @@ public class OrdersController {
             }
         }
 
-        Order savedOrder = this.orders.save(created);
-        savedOrder.process(this.timeProvider.now());
+        Orders savedOrders = this.orders.save(created);
+        savedOrders.process(this.timeProvider.now());
 
-        Delivery newDelivery = deliveries.scheduleDelivery(savedOrder);
-        savedOrder.setDelivery(newDelivery);
+        Delivery newDelivery = deliveries.scheduleDelivery(savedOrders);
+        savedOrders.setDelivery(newDelivery);
 
         return ResponseEntity
-                .created(new URI("/orders/%d".formatted(savedOrder.getId())))
-                .body(OrderResponseDto.fromOrder(savedOrder));
+                .created(new URI("/orders/%d".formatted(savedOrders.getId())))
+                .body(OrdersResponseDto.fromOrders(savedOrders));
 
+    }
+
+    //Todo: catch afmaken
+    public boolean checkItemStock(List<Ingredient> ingredients){
+        try(Connection connection = factory.newConnection()){
+            Channel channel = connection.createChannel();
+            channel.queueDeclare("stock-check", false, false, false, null);
+            for(Ingredient i : ingredients){
+                String message = i.name;
+                channel.basicPublish("", "stock-check", false, null, message.getBytes());
+            }
+        }catch{
+
+        }
     }
 
     @GetMapping("report")
     public ResponseEntity<List<OrdersPerDayDTO>> getReport(){
-        List<ReportService.OrdersPerDayDTO> orders = this.reports.generateOrderPerDayReport();
+        List<ReportService.OrdersPerDayDTO> orders = this.reports.generateOrdersPerDayReport();
 
         return ResponseEntity.ok(orders.stream().map(o -> new OrdersPerDayDTO(o.year(), o.month(), o.day(), o.count())).toList());
     }
