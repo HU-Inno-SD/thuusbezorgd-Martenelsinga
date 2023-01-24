@@ -9,6 +9,7 @@ import java.util.List;
 
 @Component
 
+// Dit is het 'statistics' deel
 public class ReportService {
 
     private final EntityManager entities;
