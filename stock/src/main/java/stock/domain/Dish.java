@@ -1,13 +1,11 @@
 package stock.domain;
 
 
+import common.DTO.IngredientDTO;
 import stock.exception.OutOfStockException;
 
 import javax.persistence.*;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Entity
 public class Dish {
@@ -20,7 +18,6 @@ public class Dish {
     private List<Ingredient> ingredients;
 
     protected Dish() {
-        //For Hibernate
     }
 
     public Dish(String name, Ingredient... ingredients) {
@@ -40,12 +37,15 @@ public class Dish {
         return name;
     }
 
-    public List<Ingredient> getIngredients() {
-        return Collections.unmodifiableList(ingredients);
+    public List<IngredientDTO> getIngredients() {
+        List<IngredientDTO> ingr = new ArrayList<>();
+        for(Ingredient i : this.ingredients){
+            ingr.add(new IngredientDTO(i.getName(), i.isVegetarian()));
+        }
+        return ingr;
     }
 
     public boolean isVegetarian() {
-        // Hier vragen aan stock of het vega is
         return this.ingredients.stream().allMatch(Ingredient::isVegetarian);
     }
 

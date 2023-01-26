@@ -1,4 +1,6 @@
 package common;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Bean;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;

@@ -11,4 +11,5 @@ import stock.domain.Dish;
 public interface DishRepository extends MongoRepository<Dish, Long> {
     Optional<Dish> findById(Long id);
     List<Dish> findAll();
+    Optional<Dish> findByName(String name);
 }
