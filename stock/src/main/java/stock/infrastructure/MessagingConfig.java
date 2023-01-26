@@ -26,6 +26,13 @@ public class MessagingConfig {
     @Value("menuBindingKey")
     private String menuKey;
 
+    @Value("AckBindingKey")
+    private String ackKey;
+
+    @Bean
+    public Queue ackQueue(){
+        return QueueBuilder.durable("ackQueue").build();
+    }
     @Bean
     public Queue stockQueue(){
         return QueueBuilder.durable("stockQueue").build();
@@ -46,7 +53,10 @@ public class MessagingConfig {
     public Binding menuBinding(){
         return BindingBuilder.bind(menuQueue()).to(topicExchange()).with(menuKey);
     }
-
+    @Bean
+    public Binding ackBinding(){
+        return BindingBuilder.bind(ackQueue()).to(topicExchange()).with(ackKey);
+    }
 
     @Bean
     public RabbitTemplate template(Jackson2JsonMessageConverter converter){
