@@ -1,15 +1,16 @@
 package presentation;
 
+import common.User;
 import nl.hu.inno.thuusbezorgd.application.DeliveryService;
 import data.DeliveryRepository;
 import nl.hu.inno.thuusbezorgd.data.ReviewRepository;
 import domain.*;
 
-import nl.hu.inno.thuusbezorgd.security.User;
-import nl.hu.inno.thuusbezorgd.security.UserRepository;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -63,6 +64,28 @@ public class DeliveryController {
 
     }
 
+    @GetMapping("/ingredients/{id}/deliveries")
+    public ResponseEntity<List<DeliveryDTO>> getDeliveries(@PathVariable("id") long id) {
+        Optional<Ingredient> i = this.ingredients.findById(id);
+        if (i.isPresent()) {
+            return ResponseEntity.ok(new ArrayList<>()); //Daadwerkelijk bijhouden van bezorgingen is nog niet interessant
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @PostMapping("/ingredients/{id}/deliveries")
+    @Transactional
+    public ResponseEntity<IngredientDTO> addDelivery(@PathVariable("id") long id, @RequestBody DeliveryDTO deliveryDTO) {
+        Optional<Ingredient> i = this.ingredients.findById(id);
+        if (i.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+
+        i.get().deliver(deliveryDTO.nrDelivered);
+
+        return ResponseEntity.ok(IngredientDTO.fromIngredient(i.get()));
+    }
 
     @GetMapping("/{id}/reviews")
     public ResponseEntity<List<ReviewDTO>> getDishReviews(@PathVariable("id") long id) {
