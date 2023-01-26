@@ -1,9 +1,8 @@
 package nl.hu.inno.thuusbezorgd.orders.presentation;
 
+import common.Address;
+import common.DTO.DishDTO;
 import common.User;
-import nl.hu.inno.thuusbezorgd.TimeProvider;
-import nl.hu.inno.thuusbezorgd.orders.application.DeliveryService;
-import nl.hu.inno.thuusbezorgd.orders.application.ReportService;
 import nl.hu.inno.thuusbezorgd.orders.domain.*;
 import nl.hu.inno.thuusbezorgd.orders.data.OrderRepository;
 import org.springframework.http.HttpStatus;
@@ -36,20 +35,18 @@ public class OrderController {
     }
 
 
-    public record OrdersDto(AddressDto address, List<DishDto> dishes) {
+    public record OrdersDto(AddressDto address, List<DishDTO> dishes) {
     }
 
-    public record OrdersResponseDto(AddressDto address, List<DishDto> dishes, OrderStatus status, String deliveryUrl) {
-        public static OrdersResponseDto fromOrders(Orders o) {
-            List<Dish> orderedDishes = o.getOrderedDishes();
-            List<DishDto> dtos = orderedDishes.stream().map(DishDto::new).collect(Collectors.toList());
+    public record OrdersResponseDto(AddressDto address, List<DishDTO> dishes, OrderStatus status, String deliveryUrl) {
+        public static OrdersResponseDto fromOrder(Order o) {
+            List<DishDTO> orderedDishes = o.getOrderedDishes();
 
-            return new OrderResponseDto(new AddressDto(o.getAddress()), dtos, o.getStatus(), String.format("/deliveries/%s", o.getDelivery().getId()));
+            return new OrderResponseDTO(new AddressDTO(o.getAddress()), dtos, o.getStatus(), String.format("/deliveries/%s", o.getDelivery().getId()));
         }
     }
 
     private final OrderRepository orders;
-    private final DishRepository dishes;
     private final UserRepository users;
     private final DeliveryService deliveries;
     private TimeProvider timeProvider;
@@ -58,13 +55,11 @@ public class OrderController {
 
     public OrderController( //Dit begint al aardige constructor overinjection te worden!
                             OrderRepository orders,
-                            DishRepository dishes,
                             UserRepository users,
                             DeliveryService deliveries,
                             TimeProvider timeProvider,
                             ReportService reports) {
         this.orders = orders;
-        this.dishes = dishes;
         this.users = users;
         this.deliveries = deliveries;
         this.timeProvider = timeProvider;
@@ -94,10 +89,10 @@ public class OrderController {
     @PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
     @Transactional
     public ResponseEntity<OrdersResponseDto> placeOrders(User user, @RequestBody MultiValueMap<String, String> paramMap) throws URISyntaxException {
-        List<DishDto> orderedDishes = new ArrayList<>();
+        List<DishDTO> orderedDishes = new ArrayList<>();
         for (String d : paramMap.get("dish")) {
             long id = Long.parseLong(d);
-            orderedDishes.add(new DishDto(id, ""));
+            orderedDishes.add(new DishDTO(id, ""));
         }
 
         String city = paramMap.getFirst("city");
@@ -115,7 +110,7 @@ public class OrderController {
     @Transactional
     public ResponseEntity<OrdersResponseDto> placeOrders(User user, @RequestBody OrdersDto newOrders) throws URISyntaxException {
         Orders created = new Orders(user, newOrders.address.toAddress());
-        for (DishDto orderedDish : newOrders.dishes()) {
+        for (DishDTO orderedDish : newOrders.dishes()) {
             Optional<Dish> d = this.dishes.findById(orderedDish.id());
             if (d.isPresent()) {
                 created.addDish(d.get());
@@ -137,8 +132,7 @@ public class OrderController {
 
     }
 
-    //Todo: catch afmaken
-    @GetMapping("/checkstock/")
+    @GetMapping("/stock/")
     public boolean checkItemStock(@RequestBody String ingredient) throws Exception{
 
     }

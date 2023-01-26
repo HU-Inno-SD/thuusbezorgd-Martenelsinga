@@ -63,13 +63,13 @@ public class Order {
     }
 
 
-    public Delivery getDelivery() {
-        return delivery;
-    }
-
-    public void setDelivery(Delivery delivery) {
-        this.delivery = delivery;
-    }
+//    public Delivery getDelivery() {
+//        return delivery;
+//    }
+//
+//    public void setDelivery(Delivery delivery) {
+//        this.delivery = delivery;
+//    }
 
     public void disputeOrder(){
         if(this.status == OrderStatus.Delivered || this.status == OrderStatus.Underway){
@@ -81,10 +81,10 @@ public class Order {
         this.status = this.status.next();
     }
 
-    public void process(LocalDateTime orderMoment) {
-        this.orderDate = orderMoment;
-        for (Dish d : this.getOrderedDishes()) {
-            d.prepare();
-        }
-    }
+//    public void process(LocalDateTime orderMoment) {
+//        this.orderDate = orderMoment;
+//        for (DishDTO d : this.getOrderedDishes()) {
+//            d.prepare();
+//        }
+//    }
 }

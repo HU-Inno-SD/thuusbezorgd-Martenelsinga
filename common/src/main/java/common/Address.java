@@ -1,4 +1,4 @@
-package domain;
+package common;
 
 import javax.persistence.Embeddable;
 import java.util.Objects;
@@ -46,5 +46,21 @@ public class Address {
     @Override
     public int hashCode() {
         return Objects.hash(city, street, housenr, zipcode);
+    }
+
+    public void setCity(String city) {
+        this.city = city;
+    }
+
+    public void setStreet(String street) {
+        this.street = street;
+    }
+
+    public void setHousenr(String housenr) {
+        this.housenr = housenr;
+    }
+
+    public void setZipcode(String zipcode) {
+        this.zipcode = zipcode;
     }
 }

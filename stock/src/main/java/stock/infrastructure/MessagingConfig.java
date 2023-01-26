@@ -1,15 +1,15 @@
-package nl.hu.inno.thuusbezorgd.orders.infrastructure;
+package stock.infrastructure;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.amqp.core.*;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.amqp.support.converter.MessageConverter;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 
 
@@ -21,8 +21,6 @@ public class MessagingConfig {
 
     @Value("${spring.rabbitmq.port}")
     private int port;
-    @Value("orderBindingKey")
-    private String orderKey;
     @Value("stockBindingKey")
     private String stockKey;
     @Value("menuBindingKey")
@@ -31,10 +29,6 @@ public class MessagingConfig {
     @Bean
     public Queue stockQueue(){
         return QueueBuilder.durable("stockQueue").build();
-    }
-    @Bean
-    public Queue orderQueue(){
-        return QueueBuilder.durable("orderQueue").build();
     }
     @Bean
     public Queue menuQueue(){
@@ -49,13 +43,11 @@ public class MessagingConfig {
         return BindingBuilder.bind(stockQueue()).to(topicExchange()).with(stockKey);
     }
     @Bean
-    public Binding orderBinding(){
-        return BindingBuilder.bind(orderQueue()).to(topicExchange()).with(orderKey);
-    }
-    @Bean
     public Binding menuBinding(){
         return BindingBuilder.bind(menuQueue()).to(topicExchange()).with(menuKey);
     }
+
+
     @Bean
     public RabbitTemplate template(Jackson2JsonMessageConverter converter){
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
