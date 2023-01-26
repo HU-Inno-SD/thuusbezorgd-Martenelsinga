@@ -1,4 +1,4 @@
-package presentation;
+package stock.presentation;
 
 import common.User;
 import data.ReviewRepository;

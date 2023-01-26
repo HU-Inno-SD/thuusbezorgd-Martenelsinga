@@ -88,7 +88,7 @@ public class OrderController {
 
     @GetMapping("{id}")
     public ResponseEntity<OrdersResponseDto> getOrders(User user, @PathVariable long id) {
-        Optional<Orders> orders = this.orders.findById(id);
+        Optional<Order> order = this.orders.findById(id);
         if(orders.isEmpty() || order.get().getUser() != user){
             return ResponseEntity.notFound().build();
         }

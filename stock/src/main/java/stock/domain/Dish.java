@@ -1,6 +1,7 @@
-package domain;
+package stock.domain;
 
-import org.hibernate.annotations.Entity;
+
+import stock.exception.OutOfStockException;
 
 import javax.persistence.*;
 import java.util.Arrays;
@@ -61,13 +62,21 @@ public class Dish {
         return Objects.hash(id);
     }
 
-    public int getAvailable() {
-        // Hier vragen aan stock hoeveel er is
-        return this.getIngredients().stream().mapToInt(Ingredient::getNrInStock).min().orElse(0);
+    public boolean isAvailable(Ingredient ingredient) {
+        if(ingredient.getNrInStock() > 0){
+            return true;
+        }
+        else{
+            return false;
+        }
     }
 
-    public void prepare(){
-        // Hier vragen aan stock of er genoeg is
+    public void prepare() throws OutOfStockException {
+        for(Ingredient i: this.ingredients){
+            if(isAvailable(i) == false){
+                throw new OutOfStockException("Sorry, ingredient " + i.getName() + " is not in stock");
+            }
+        }
         for(Ingredient i: this.ingredients){
             i.take(1);
         }

@@ -17,6 +17,7 @@ public enum OrderStatus {
             case Underway -> Delivered;
             case Delivered -> Delivered;
             case Disputed -> Resolved;
+            case Resolved -> Resolved;
         };
     }
 }

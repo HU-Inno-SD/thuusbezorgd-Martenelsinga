@@ -1,14 +1,10 @@
 package nl.hu.inno.thuusbezorgd.orders.domain;
 
 import common.User;
-import org.aspectj.weaver.ast.Or;
-import org.hibernate.annotations.Cascade;
-import org.hibernate.annotations.CascadeType;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 @Entity
@@ -37,8 +33,7 @@ public class Order {
         return status;
     }
 
-    @OneToMany(mappedBy = "id.order")
-    @Cascade(CascadeType.PERSIST)
+    @OneToMany
     private List<Dish> orderedDishes;
 
     protected Order() {}
@@ -82,7 +77,7 @@ public class Order {
     }
 
     public void advanceOrder(){
-        this.status.next();
+        this.status = this.status.next();
     }
 
     public void process(LocalDateTime orderMoment) {

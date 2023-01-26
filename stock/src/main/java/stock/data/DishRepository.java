@@ -1,4 +1,4 @@
-package data;
+package stock.data;
 
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.Repository;

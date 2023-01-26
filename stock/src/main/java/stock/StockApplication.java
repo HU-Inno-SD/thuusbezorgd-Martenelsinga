@@ -7,8 +7,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import stock.application.StockService;
 import stock.data.IngredientRepository;
 
-import java.io.IOException;
-
 @SpringBootApplication
 public class StockApplication {
     @Autowired
