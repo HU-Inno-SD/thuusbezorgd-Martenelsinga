@@ -1,10 +1,20 @@
 package common.DTO;
 
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import java.util.ArrayList;
 import java.util.List;
 
+
+@Entity
 public class DishDTO {
+    @GeneratedValue
+    @Id
+    private Long id;
     private String name;
+    @ManyToMany
     private List<IngredientDTO> ingredients;
     protected DishDTO(){}
     public DishDTO(String name, List<IngredientDTO> ingredients){

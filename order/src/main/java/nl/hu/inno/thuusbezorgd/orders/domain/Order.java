@@ -1,5 +1,6 @@
 package nl.hu.inno.thuusbezorgd.orders.domain;
 
+import common.DTO.DishDTO;
 import common.User;
 
 import javax.persistence.*;
@@ -34,7 +35,7 @@ public class Order {
     }
 
     @OneToMany
-    private List<Dish> orderedDishes;
+    private List<DishDTO> orderedDishes;
 
     protected Order() {}
 
@@ -52,12 +53,12 @@ public class Order {
         return user;
     }
 
-    public List<Dish> getOrderedDishes() {
+    public List<DishDTO> getOrderedDishes() {
         return orderedDishes;
     }
 
 
-    public void addDish(Dish dish) {
+    public void addDish(DishDTO dish) {
         this.orderedDishes.add(dish);
     }
 

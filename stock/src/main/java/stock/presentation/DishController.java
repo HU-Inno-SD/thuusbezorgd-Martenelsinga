@@ -1,15 +1,13 @@
 package stock.presentation;
 
+import common.ReviewRepository;
 import common.User;
-import data.ReviewRepository;
-import domain.Dish;
-import data.DishRepository;
-import domain.DishReview;
-import domain.ReviewRating;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-
+import stock.data.DishRepository;
+import stock.domain.Dish;
 
 import java.util.List;
 import java.util.Optional;
@@ -19,23 +17,17 @@ import java.util.stream.Collectors;
 @RequestMapping("/dishes")
 public class DishController {
 
-    private final DishRepository dishes;
+    private final DishRepository dishRepository;
     private final ReviewRepository reviews;
 
-    public record DishDto(long id, String name, boolean available) {
-        public static DishDto fromDish(Dish d) {
-            return new DishDto(d.getId(), d.getName(), d.getAvailable() > 0);
-        }
-    }
-
     public DishController(DishRepository dishes, ReviewRepository reviews) {
-        this.dishes = dishes;
+        this.dishRepository = dishes;
         this.reviews = reviews;
     }
 
     @GetMapping
     public List<DishDto> getDishes() {
-        return this.dishes.findAll().stream()
+        return this.dishRepository.findAll().stream()
                 .map(DishDto::fromDish)
                 .collect(Collectors.toList());
     }
@@ -51,7 +43,7 @@ public class DishController {
 
     @GetMapping("/dishes/{id}")
     public ResponseEntity<DishDto> getDish(@PathVariable("id") long id) {
-        Optional<Dish> d = this.dishes.findById(id);
+        Optional<Dish> d = this.dishRepository.findById(id);
         if (d.isPresent()) {
             return ResponseEntity.ok(new DishDto(d.get()));
         } else {
@@ -86,7 +78,7 @@ public class DishController {
 
     @GetMapping("{id}")
     public ResponseEntity<DishDto> getDish(@PathVariable long id) {
-        Optional<Dish> dishResult = this.dishes.findById(id);
+        Optional<Dish> dishResult = this.dishRepository.findById(id);
         if (dishResult.isEmpty()) {
             return ResponseEntity.notFound().build();
         } else {
@@ -108,7 +100,7 @@ public class DishController {
 
     @GetMapping("/{id}/reviews")
     public ResponseEntity<List<ReviewDTO>> getDishReviews(@PathVariable("id") long id) {
-        Optional<Dish> d = this.dishes.findById(id);
+        Optional<Dish> d = this.dishRepository.findById(id);
         if (d.isEmpty()) {
             return ResponseEntity.notFound().build();
         }
@@ -120,7 +112,7 @@ public class DishController {
     @PostMapping("/{id}/reviews")
     @Transactional
     public ResponseEntity<ReviewDTO> postReview(User user, @PathVariable("id") long id, @RequestBody PostedReviewDTO reviewDTO) {
-        Optional<Dish> found = this.dishes.findById(id);
+        Optional<Dish> found = this.dishRepository.findById(id);
         if (found.isEmpty()) {
             return ResponseEntity.notFound().build();
         }

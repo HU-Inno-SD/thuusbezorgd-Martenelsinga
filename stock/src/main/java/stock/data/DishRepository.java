@@ -2,13 +2,13 @@ package stock.data;
 
 import org.springframework.data.repository.NoRepositoryBean;
 import org.springframework.data.repository.Repository;
+import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
 import java.util.Optional;
-import domain.Dish;
+import stock.domain.Dish;
 
-@NoRepositoryBean
-public interface DishRepository extends Repository<Dish, Long> {
+public interface DishRepository extends MongoRepository<Dish, Long> {
     Optional<Dish> findById(Long id);
     List<Dish> findAll();
 }

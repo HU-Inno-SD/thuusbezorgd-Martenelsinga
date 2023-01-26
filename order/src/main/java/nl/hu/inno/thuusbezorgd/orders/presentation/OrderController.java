@@ -35,16 +35,6 @@ public class OrderController {
         }
     }
 
-    public record DishDto(Long id, String name) {
-
-        public DishDto(long id) {
-            this(id, null);
-        }
-
-        public DishDto(Dish d) {
-            this(d.getId(), d.getName());
-        }
-    }
 
     public record OrdersDto(AddressDto address, List<DishDto> dishes) {
     }
