@@ -5,8 +5,6 @@ import nl.hu.inno.thuusbezorgd.orders.application.DeliveryService;
 import nl.hu.inno.thuusbezorgd.orders.application.ReportService;
 import nl.hu.inno.thuusbezorgd.orders.domain.*;
 import nl.hu.inno.thuusbezorgd.orders.data.OrdersRepository;
-import nl.hu.inno.thuusbezorgd.security.User;
-import nl.hu.inno.thuusbezorgd.security.UserRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
