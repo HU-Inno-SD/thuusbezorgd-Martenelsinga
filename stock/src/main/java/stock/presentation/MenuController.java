@@ -19,14 +19,12 @@ import java.util.Optional;
 @RequestMapping("/dishes")
 public class MenuController {
 
-    // Yes this is a controller and a service in one. I deemed it unnecessary to split them.
+    // Yes this is a controller and a service in one. I deemed it unnecessary to split them for a proof-of-concept
     private final DishRepository dishRepository;
     private final IngredientRepository ingredientRepository;
-    private final ReviewRepository reviewRepository;
 
-    public MenuController(DishRepository dishes, ReviewRepository reviewRepository, IngredientRepository ingredientRepository) {
+    public MenuController(DishRepository dishes, IngredientRepository ingredientRepository) {
         this.dishRepository = dishes;
-        this.reviewRepository = reviewRepository;
         this.ingredientRepository = ingredientRepository;
     }
 
