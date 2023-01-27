@@ -23,9 +23,6 @@ public class Order {
     public LocalDateTime getOrderDate() {
         return orderDate;
     }
-//    @OneToOne
-//    private Delivery delivery;
-
 
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
@@ -39,10 +36,11 @@ public class Order {
 
     protected Order() {}
 
-    public Order(User u) {
+    public Order(User u, LocalDateTime moment) {
         this.user = u;
         this.orderedDishes = new ArrayList<>();
         this.status = OrderStatus.Received;
+        this.orderDate = moment;
     }
 
     public Long getId() {

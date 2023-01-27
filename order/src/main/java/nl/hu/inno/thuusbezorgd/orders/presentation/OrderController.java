@@ -3,13 +3,17 @@ package nl.hu.inno.thuusbezorgd.orders.presentation;
 import common.Address;
 import common.DTO.DishDTO;
 import common.User;
+import common.UserRepository;
+import common.exception.UserNotFoundException;
 import nl.hu.inno.thuusbezorgd.orders.domain.*;
 import nl.hu.inno.thuusbezorgd.orders.data.OrderRepository;
+import nl.hu.inno.thuusbezorgd.orders.exception.OrderNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.MultiValueMap;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -22,7 +26,7 @@ import java.util.stream.Collectors;
 import com.rabbitmq.client.ConnectionFactory;
 
 @RestController
-@RequestMapping("/order")
+@RequestMapping("/orders")
 public class OrderController {
     public record AddressDto(String street, String nr, String city, String zip) {
         public AddressDto(Address a) {
@@ -35,18 +39,7 @@ public class OrderController {
     }
 
 
-    public record OrdersDto(AddressDto address, List<DishDTO> dishes) {
-    }
-
-    public record OrdersResponseDto(AddressDto address, List<DishDTO> dishes, OrderStatus status, String deliveryUrl) {
-        public static OrdersResponseDto fromOrder(Order o) {
-            List<DishDTO> orderedDishes = o.getOrderedDishes();
-
-            return new OrderResponseDTO(new AddressDTO(o.getAddress()), dtos, o.getStatus(), String.format("/deliveries/%s", o.getDelivery().getId()));
-        }
-    }
-
-    private final OrderRepository orders;
+    private final OrderRepository orderRepository;
     private final UserRepository users;
     private final DeliveryService deliveries;
     private TimeProvider timeProvider;
@@ -59,36 +52,37 @@ public class OrderController {
                             DeliveryService deliveries,
                             TimeProvider timeProvider,
                             ReportService reports) {
-        this.orders = orders;
+        this.orderRepository = orders;
         this.users = users;
         this.deliveries = deliveries;
         this.timeProvider = timeProvider;
         this.reports = reports;
     }
 
-    @GetMapping()
-    public List<OrdersResponseDto> getOrders(User user) {
-        return this.orders.findByUser(user).stream().map(OrderResponseDto::fromOrders).collect(Collectors.toList());
-    }
-
-    @GetMapping("{id}")
-    public ResponseEntity<OrdersResponseDto> getOrders(User user, @PathVariable long id) {
-        Optional<Order> order = this.orders.findById(id);
-        if(orders.isEmpty() || order.get().getUser() != user){
-            return ResponseEntity.notFound().build();
+    @GetMapping("/user/{name}")
+    public List<Order> getOrders(@PathVariable User user) throws UserNotFoundException {
+        List<Order> orders = orderRepository.findByUser(user);
+        if(orders.isEmpty()){
+            throw new UserNotFoundException("User not found or they have no orders");
         }
-
-        return ResponseEntity.ok(OrdersResponseDto.fromOrders(orders.get()));
+        return orderRepository.findByUser(user);
     }
 
-    public boolean checkStock(String dish){
-
+    @GetMapping("/user/{name}/{id}")
+    public Optional<Order> getOrder(User user, @PathVariable long id) throws UserNotFoundException, OrderNotFoundException {
+        Optional<Order> order = this.orderRepository.findById(id);
+        if(order.isEmpty()){
+            throw new OrderNotFoundException("Order not found");
+        }
+        if(order.get().getUser() != user){
+            throw new UserNotFoundException("User not found");
+        }
+        return order;
     }
 
-
-    @PostMapping(consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE})
+    @PostMapping("/order")
     @Transactional
-    public ResponseEntity<OrdersResponseDto> placeOrders(User user, @RequestBody MultiValueMap<String, String> paramMap) throws URISyntaxException {
+    public OrderDTO placeOrder(User user, @Validated @RequestBody MultiValueMap<String, String> paramMap) throws URISyntaxException {
         List<DishDTO> orderedDishes = new ArrayList<>();
         for (String d : paramMap.get("dish")) {
             long id = Long.parseLong(d);
@@ -108,7 +102,7 @@ public class OrderController {
 
     @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
     @Transactional
-    public ResponseEntity<OrdersResponseDto> placeOrders(User user, @RequestBody OrdersDto newOrders) throws URISyntaxException {
+    public ResponseEntity<OrdersResponseDto> placeOrder(User user, @RequestBody OrdersDto newOrders) throws URISyntaxException {
         Orders created = new Orders(user, newOrders.address.toAddress());
         for (DishDTO orderedDish : newOrders.dishes()) {
             Optional<Dish> d = this.dishes.findById(orderedDish.id());
@@ -120,7 +114,7 @@ public class OrderController {
             }
         }
 
-        Orders savedOrders = this.orders.save(created);
+        Orders savedOrders = this.orderRepository.save(created);
         savedOrders.process(this.timeProvider.now());
 
         Delivery newDelivery = deliveries.scheduleDelivery(savedOrders);

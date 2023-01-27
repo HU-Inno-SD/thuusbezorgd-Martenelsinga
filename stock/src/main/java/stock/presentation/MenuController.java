@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/dishes")
+@RequestMapping("/menu")
 public class MenuController {
 
     // Yes this is a controller and a service in one. I deemed it unnecessary to split them for a proof-of-concept
@@ -28,7 +28,7 @@ public class MenuController {
         this.ingredientRepository = ingredientRepository;
     }
 
-    @GetMapping("/menu")
+    @GetMapping("/dishes")
     public List<DishDTO> getAllDishes() {
         List<Dish> list = this.dishRepository.findAll();
         List<DishDTO> realList = new ArrayList<>();
@@ -38,7 +38,7 @@ public class MenuController {
         return realList;
     }
 
-    @GetMapping("/menu/{id}")
+    @GetMapping("/dishes/{id}")
     public DishDTO getDish(@PathVariable("id") long id) throws DishNotFoundException {
         Optional<Dish> d = this.dishRepository.findById(id);
         if (d.isPresent()) {
@@ -68,7 +68,7 @@ public class MenuController {
         }
     }
 
-    @GetMapping("/menu/name/{name}")
+    @GetMapping("/dishes/name/{name}")
     public DishDTO getDishByName(@PathVariable("name") String name) throws DishNotFoundException{
         Optional<Dish> d = this.dishRepository.findByName(name);
         if (d.isPresent()) {
@@ -78,7 +78,7 @@ public class MenuController {
         }
     }
 
-    @GetMapping("/stock/{id}")
+    @GetMapping("/ingredients/stock/{id}")
     public int getIngredientStock(@PathVariable("id") long id) throws IngredientNotFoundException{
         Optional<Ingredient> i = ingredientRepository.findById(id);
         if (i.isPresent()) {
