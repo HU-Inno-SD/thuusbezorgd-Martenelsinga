@@ -1,6 +1,6 @@
 package nl.hu.inno.thuusbezorgd.orders.dto;
 
-import common.DTO.DishDTO;
+import common.dto.DishDTO;
 import common.User;
 import nl.hu.inno.thuusbezorgd.orders.domain.OrderStatus;
 

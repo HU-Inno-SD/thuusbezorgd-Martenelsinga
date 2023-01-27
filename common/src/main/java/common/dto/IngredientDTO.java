@@ -1,4 +1,4 @@
-package common.DTO;
+package common.dto;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;

@@ -1,7 +1,7 @@
 package stock.domain;
 
 
-import common.DTO.IngredientDTO;
+import common.dto.IngredientDTO;
 import stock.exception.OutOfStockException;
 
 import javax.persistence.*;

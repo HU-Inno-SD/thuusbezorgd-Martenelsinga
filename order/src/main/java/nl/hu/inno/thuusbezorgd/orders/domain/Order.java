@@ -1,11 +1,10 @@
 package nl.hu.inno.thuusbezorgd.orders.domain;
 
-import common.DTO.DishDTO;
+import common.dto.DishDTO;
 import common.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -36,9 +35,9 @@ public class Order {
 
     protected Order() {}
 
-    public Order(User u, LocalDateTime moment) {
+    public Order(User u, List<DishDTO> dishes, LocalDateTime moment) {
         this.user = u;
-        this.orderedDishes = new ArrayList<>();
+        this.orderedDishes = dishes;
         this.status = OrderStatus.Received;
         this.orderDate = moment;
     }

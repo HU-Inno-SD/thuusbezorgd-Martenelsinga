@@ -1,14 +1,13 @@
 package stock.presentation;
 
-import common.DTO.DishDTO;
-import common.DTO.IngredientDTO;
-import common.ReviewRepository;
+import common.dto.DishDTO;
+import common.dto.IngredientDTO;
 import org.springframework.web.bind.annotation.*;
 import stock.data.DishRepository;
 import stock.data.IngredientRepository;
 import stock.domain.Dish;
 import stock.domain.Ingredient;
-import stock.exception.DishNotFoundException;
+import common.exception.DishNotFoundException;
 import stock.exception.IngredientNotFoundException;
 
 import java.util.ArrayList;

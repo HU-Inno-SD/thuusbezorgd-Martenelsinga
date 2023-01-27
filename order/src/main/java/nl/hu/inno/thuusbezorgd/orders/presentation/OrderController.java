@@ -1,29 +1,24 @@
 package nl.hu.inno.thuusbezorgd.orders.presentation;
 
 import common.Address;
-import common.DTO.DishDTO;
+import common.DishList;
 import common.User;
 import common.UserRepository;
+import common.exception.DishNotFoundException;
 import common.exception.UserNotFoundException;
+import common.requests.stockCheckRequest;
+import nl.hu.inno.thuusbezorgd.orders.application.OrderService;
 import nl.hu.inno.thuusbezorgd.orders.domain.*;
 import nl.hu.inno.thuusbezorgd.orders.data.OrderRepository;
+import nl.hu.inno.thuusbezorgd.orders.dto.OrderDTO;
 import nl.hu.inno.thuusbezorgd.orders.exception.OrderNotFoundException;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.util.MultiValueMap;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
 
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import com.rabbitmq.client.ConnectionFactory;
 
 @RestController
 @RequestMapping("/orders")
@@ -38,7 +33,7 @@ public class OrderController {
         }
     }
 
-
+    private final OrderService service;
     private final OrderRepository orderRepository;
     private final UserRepository users;
     private final DeliveryService deliveries;
@@ -51,12 +46,14 @@ public class OrderController {
                             UserRepository users,
                             DeliveryService deliveries,
                             TimeProvider timeProvider,
-                            ReportService reports) {
+                            ReportService reports,
+                            OrderService service) {
         this.orderRepository = orders;
         this.users = users;
         this.deliveries = deliveries;
         this.timeProvider = timeProvider;
         this.reports = reports;
+        this.service = service;
     }
 
     @GetMapping("/user/{name}")
@@ -82,54 +79,10 @@ public class OrderController {
 
     @PostMapping("/order")
     @Transactional
-    public OrderDTO placeOrder(User user, @Validated @RequestBody MultiValueMap<String, String> paramMap) throws URISyntaxException {
-        List<DishDTO> orderedDishes = new ArrayList<>();
-        for (String d : paramMap.get("dish")) {
-            long id = Long.parseLong(d);
-            orderedDishes.add(new DishDTO(id, ""));
-        }
-
-        String city = paramMap.getFirst("city");
-        String street = paramMap.getFirst("street");
-        String nr = paramMap.getFirst("nr");
-        String zip = paramMap.getFirst("zip");
-
-        //Todo: validate
-
-        return placeOrders(user, new OrdersDto(new AddressDto(street, nr, city, zip), orderedDishes));
+    public void placeOrder(User user, @Validated @RequestBody DishList order, @Validated @RequestBody Address address){
+        this.service.placeOrder(user, order, address);
     }
 
-
-    @PostMapping(consumes = {MediaType.APPLICATION_JSON_VALUE})
-    @Transactional
-    public ResponseEntity<OrdersResponseDto> placeOrder(User user, @RequestBody OrdersDto newOrders) throws URISyntaxException {
-        Orders created = new Orders(user, newOrders.address.toAddress());
-        for (DishDTO orderedDish : newOrders.dishes()) {
-            Optional<Dish> d = this.dishes.findById(orderedDish.id());
-            if (d.isPresent()) {
-                created.addDish(d.get());
-            } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                        "Dish %s %s not found".formatted(orderedDish.id(), orderedDish.name()));
-            }
-        }
-
-        Orders savedOrders = this.orderRepository.save(created);
-        savedOrders.process(this.timeProvider.now());
-
-        Delivery newDelivery = deliveries.scheduleDelivery(savedOrders);
-        savedOrders.setDelivery(newDelivery);
-
-        return ResponseEntity
-                .created(new URI("/orders/%d".formatted(savedOrders.getId())))
-                .body(OrdersResponseDto.fromOrders(savedOrders));
-
-    }
-
-    @GetMapping("/stock/")
-    public boolean checkItemStock(@RequestBody String ingredient) throws Exception{
-
-    }
 
     @GetMapping("report")
     public ResponseEntity<List<OrdersPerDayDTO>> getReport(){
