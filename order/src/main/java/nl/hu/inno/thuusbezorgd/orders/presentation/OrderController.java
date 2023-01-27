@@ -23,36 +23,17 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/orders")
 public class OrderController {
-    public record AddressDto(String street, String nr, String city, String zip) {
-        public AddressDto(Address a) {
-            this(a.getStreet(), a.getHousenr(), a.getCity(), a.getZipcode());
-        }
-
-        public Address toAddress() {
-            return new Address(city(), street(), nr(), zip());
-        }
-    }
-
     private final OrderService service;
     private final OrderRepository orderRepository;
     private final UserRepository users;
-    private final DeliveryService deliveries;
-    private TimeProvider timeProvider;
-    private ReportService reports;
 
 
-    public OrderController( //Dit begint al aardige constructor overinjection te worden!
+    public OrderController(
                             OrderRepository orders,
                             UserRepository users,
-                            DeliveryService deliveries,
-                            TimeProvider timeProvider,
-                            ReportService reports,
                             OrderService service) {
         this.orderRepository = orders;
         this.users = users;
-        this.deliveries = deliveries;
-        this.timeProvider = timeProvider;
-        this.reports = reports;
         this.service = service;
     }
 
@@ -83,14 +64,14 @@ public class OrderController {
         this.service.placeOrder(user, order, address);
     }
 
-
-    @GetMapping("report")
-    public ResponseEntity<List<OrdersPerDayDTO>> getReport(){
-        List<ReportService.OrdersPerDayDTO> orders = this.reports.generateOrdersPerDayReport();
-
-        return ResponseEntity.ok(orders.stream().map(o -> new OrdersPerDayDTO(o.year(), o.month(), o.day(), o.count())).toList());
-    }
-
-    public record OrdersPerDayDTO(int year, int month, int day, int orders) {
-    }
+//
+//    @GetMapping("report")
+//    public ResponseEntity<List<OrdersPerDayDTO>> getReport(){
+//        List<ReportService.OrdersPerDayDTO> orders = this.reports.generateOrdersPerDayReport();
+//
+//        return ResponseEntity.ok(orders.stream().map(o -> new OrdersPerDayDTO(o.year(), o.month(), o.day(), o.count())).toList());
+//    }
+//
+//    public record OrdersPerDayDTO(int year, int month, int day, int orders) {
+//    }
 }

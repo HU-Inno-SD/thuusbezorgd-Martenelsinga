@@ -1,7 +1,5 @@
 package stock.data;
 
-import org.springframework.data.repository.NoRepositoryBean;
-import org.springframework.data.repository.Repository;
 import org.springframework.data.mongodb.repository.MongoRepository;
 
 import java.util.List;
