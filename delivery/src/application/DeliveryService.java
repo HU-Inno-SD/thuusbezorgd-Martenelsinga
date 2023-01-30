@@ -25,7 +25,7 @@ public class DeliveryService {
     }
 
     @Transactional
-    public Delivery scheduleDelivery(Orders order) {
+    public Delivery scheduleDelivery(Long orderid) {
         List<Rider> riders = this.riders.findAll();
         // Dit haalt alle riders uit de database EN alle deliveries, en gaat dan pas kijken wie er ruimte heeft.
         // Dat kan vast handiger!

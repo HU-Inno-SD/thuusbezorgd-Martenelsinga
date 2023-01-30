@@ -23,7 +23,6 @@ public class OrderController {
     private final OrderRepository orderRepository;
     private final UserRepository users;
 
-
     public OrderController(
                             OrderRepository orders,
                             UserRepository users,
@@ -60,7 +59,18 @@ public class OrderController {
         this.service.placeOrder(user, order, address);
     }
 
-//
+    @PutMapping("/{id}/advance")
+    public void advanceOrder(@PathVariable Long id) throws OrderNotFoundException{
+        Optional<Order> optOrder = this.orderRepository.findById(id);
+        if(!optOrder.isPresent()){
+            throw new OrderNotFoundException("Order not found");
+        }
+        Order order = optOrder.get();
+        order.advanceOrder();
+        this.orderRepository.save(order);
+    }
+
+
 //    @GetMapping("report")
 //    public ResponseEntity<List<OrdersPerDayDTO>> getReport(){
 //        List<ReportService.OrdersPerDayDTO> orders = this.reports.generateOrdersPerDayReport();

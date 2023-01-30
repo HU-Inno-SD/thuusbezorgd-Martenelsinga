@@ -4,8 +4,6 @@ package domain;
 import javax.persistence.*;
 
 @Entity
-@NamedNativeQuery(name = "Delivery.findRandom", resultClass = Delivery.class,
-        query = "select * from delivery order by random() limit 1")
 public class Delivery {
     @Id
     @GeneratedValue
@@ -21,20 +19,19 @@ public class Delivery {
         return rider;
     }
 
-    public Orders getOrder() {
-        return order;
+    public Long getOrderId() {
+        return orderId;
     }
 
     @ManyToOne
     private Rider rider;
 
-    @ManyToOne
-    private Orders order;
+    private Long orderId;
 
     protected Delivery(){}
 
-    public Delivery(Orders order, Rider rider){
-        this.order = order;
+    public Delivery(Long orderId, Rider rider){
+        this.orderId = orderId;
         this.rider = rider;
     }
 
@@ -44,6 +41,5 @@ public class Delivery {
 
     public void markCompleted(){
         this.completed = true;
-        this.order.setStatus(OrderStatus.Delivered);
     }
 }

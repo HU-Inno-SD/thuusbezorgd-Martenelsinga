@@ -59,6 +59,10 @@ public class Ingredient {
         return nrInStock;
     }
 
+    public void setId(Long id){
+        this.id = id;
+    }
+
     public void take(int n){
         if(n > this.nrInStock){
             throw new RuntimeException("Out of stock: " + this.getName());

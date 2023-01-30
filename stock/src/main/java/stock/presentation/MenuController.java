@@ -34,6 +34,28 @@ public class MenuController {
         this.publisher = new StockPublisher();
     }
 
+    @PutMapping("/restock")
+    public void restock(@RequestBody Long id, @RequestBody int amount ) throws IngredientNotFoundException{
+        Optional<Ingredient> ingredient = this.ingredientRepository.findById(id);
+        if(!ingredient.isPresent()){
+            throw new IngredientNotFoundException("Ingredient not found");
+        }
+        int newstock = ingredient.get().getNrInStock() + amount;
+        Ingredient realIngredient = new Ingredient(ingredient.get().getName(), ingredient.get().isVegetarian(), newstock);
+        realIngredient.setId(ingredient.get().getId());
+        this.ingredientRepository.save(realIngredient);
+    }
+
+    @PostMapping("/newdish")
+    public void addDish(@RequestBody Dish dish){
+        this.dishRepository.save(dish);
+    }
+
+    @PostMapping("/newingredient")
+    public void addIngredient(@RequestBody Ingredient ingredient){
+        this.ingredientRepository.save(ingredient);
+    }
+
     @GetMapping("/dishes")
     public List<DishDTO> getAllDishes() {
         List<Dish> list = this.dishRepository.findAll();

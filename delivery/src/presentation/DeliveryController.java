@@ -1,11 +1,12 @@
 package presentation;
 
+import application.DeliveryService;
 import common.User;
-import nl.hu.inno.thuusbezorgd.application.DeliveryService;
 import data.DeliveryRepository;
-import nl.hu.inno.thuusbezorgd.data.ReviewRepository;
 import domain.*;
 
+import dto.DeliveryDTO;
+import exception.DeliveryNotFoundException;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -20,95 +21,73 @@ public class DeliveryController {
 
     private final DeliveryService deliveryService;
     private final DeliveryRepository deliveries;
-    private final ReviewRepository reviews;
+//    private final ReviewRepository reviews;
 
-    public DeliveryController(DeliveryService deliveryService, DeliveryRepository deliveries, ReviewRepository reviews) {
+    public DeliveryController(DeliveryService deliveryService, DeliveryRepository deliveries) {
         this.deliveryService = deliveryService;
         this.deliveries = deliveries;
-        this.reviews = reviews;
+//        this.reviews = reviews;
     }
 
-    public record DeliveryResponseDTO(long id, String riderName, int minutesRemaining, String orderLink) {
-        public static DeliveryResponseDTO fromDelivery(Delivery d, int minutes) {
-            return new DeliveryResponseDTO(d.getId(), d.getRider().getName(), minutes, "/orders/" + d.getOrder().getId());
-        }
-    }
-
-    @GetMapping
-    public List<DeliveryResponseDTO> deliveries(User user) {
+    @GetMapping("/user}")
+    public List<DeliveryDTO> deliveries(@RequestBody User user) {
         List<Delivery> found = deliveries.findByOrder_User(user);
-
-        return found.stream().map(d -> DeliveryResponseDTO.fromDelivery(d, this.deliveryService.getMinutesRemaining(d))).toList();
+        List<DeliveryDTO> dtos = new ArrayList<>();
+        for(Delivery d : found){
+            dtos.add(new DeliveryDTO(d.getId(), d.isCompleted(), d.getRider()));
+        }
+        return dtos;
     }
 
     @GetMapping("{id}")
-    public ResponseEntity<DeliveryResponseDTO> getDelivery(User user, @PathVariable long id) {
+    public DeliveryDTO getDelivery(@PathVariable long id) throws DeliveryNotFoundException {
         Optional<Delivery> delivery = this.deliveries.findById(id);
 
-        if (delivery.isEmpty() || delivery.get().getOrder().getUser() != user) {
-            return ResponseEntity.notFound().build();
+        if (delivery.isEmpty()) {
+            throw new DeliveryNotFoundException("Delivery not found");
         }
+        DeliveryDTO dto = new DeliveryDTO(delivery.get().getId(), delivery.get().isCompleted(), delivery.get().getRider());
+        return dto;
+    }
 
-        return ResponseEntity.ok(
-                DeliveryResponseDTO.fromDelivery(delivery.get(), this.deliveryService.getMinutesRemaining(delivery.get())));
+    @PostMapping("/new/")
+    public void addDelivery(@RequestBody Delivery delivery) {
+        this.deliveries.save(delivery);
     }
 
 
-    public record ReviewDTO(String delivery, String reviewerName, int rating) {
-        public static ReviewDTO fromReview(DeliveryReview review) {
-            return new ReviewDTO(review.getDelivery().getId().toString(), review.getUser().getName(), review.getRating().toInt());
-        }
-    }
+//    public record ReviewDTO(String delivery, String reviewerName, int rating) {
+//        public static ReviewDTO fromReview(DeliveryReview review) {
+//            return new ReviewDTO(review.getDelivery().getId().toString(), review.getUser().getName(), review.getRating().toInt());
+//        }
+//    }
 
-    public record PostedReviewDTO(int rating) {
+//    public record PostedReviewDTO(int rating) {
+//
+//    }
 
-    }
-
-    @GetMapping("/ingredients/{id}/deliveries")
-    public ResponseEntity<List<DeliveryDTO>> getDeliveries(@PathVariable("id") long id) {
-        Optional<Ingredient> i = this.ingredients.findById(id);
-        if (i.isPresent()) {
-            return ResponseEntity.ok(new ArrayList<>()); //Daadwerkelijk bijhouden van bezorgingen is nog niet interessant
-        } else {
-            return ResponseEntity.notFound().build();
-        }
-    }
-
-    @PostMapping("/ingredients/{id}/deliveries")
-    @Transactional
-    public ResponseEntity<IngredientDTO> addDelivery(@PathVariable("id") long id, @RequestBody DeliveryDTO deliveryDTO) {
-        Optional<Ingredient> i = this.ingredients.findById(id);
-        if (i.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        i.get().deliver(deliveryDTO.nrDelivered);
-
-        return ResponseEntity.ok(IngredientDTO.fromIngredient(i.get()));
-    }
-
-    @GetMapping("/{id}/reviews")
-    public ResponseEntity<List<ReviewDTO>> getDishReviews(@PathVariable("id") long id) {
-        Optional<Delivery> d = this.deliveries.findById(id);
-        if (d.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        List<DeliveryReview> reviews = this.reviews.findDeliveryReviews(d.get());
-        return ResponseEntity.ok(reviews.stream().map(ReviewDTO::fromReview).toList());
-    }
-
-    @PostMapping("/{id}/reviews")
-    @Transactional
-    public ResponseEntity<ReviewDTO> postReview(User user, @PathVariable("id") long id, @RequestBody PostedReviewDTO reviewDTO) {
-        Optional<Delivery> found = this.deliveries.findById(id);
-        if (found.isEmpty()) {
-            return ResponseEntity.notFound().build();
-        }
-
-        DeliveryReview review = new DeliveryReview(found.get(), ReviewRating.fromInt(reviewDTO.rating()), user);
-        reviews.save(review);
-
-        return ResponseEntity.ok(ReviewDTO.fromReview(review));
-    }
+//    @GetMapping("/{id}/reviews")
+//    public ResponseEntity<List<ReviewDTO>> getDishReviews(@PathVariable("id") long id) {
+//        Optional<Delivery> d = this.deliveries.findById(id);
+//        if (d.isEmpty()) {
+//            return ResponseEntity.notFound().build();
+//        }
+//
+//        List<DeliveryReview> reviews = this.reviews.findDeliveryReviews(d.get());
+//        return ResponseEntity.ok(reviews.stream().map(ReviewDTO::fromReview).toList());
+//    }
+//
+//    @PostMapping("/{id}/reviews")
+//    @Transactional
+//    public ResponseEntity<ReviewDTO> postReview(User user, @PathVariable("id") long id, @RequestBody PostedReviewDTO reviewDTO) {
+//        Optional<Delivery> found = this.deliveries.findById(id);
+//        if (found.isEmpty()) {
+//            return ResponseEntity.notFound().build();
+//        }
+//
+//        DeliveryReview review = new DeliveryReview(found.get(), ReviewRating.fromInt(reviewDTO.rating()), user);
+//        reviews.save(review);
+//
+//        return ResponseEntity.ok(ReviewDTO.fromReview(review));
+//    }
 }
