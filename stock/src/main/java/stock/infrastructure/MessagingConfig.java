@@ -58,6 +58,8 @@ public class MessagingConfig {
         return BindingBuilder.bind(ackQueue()).to(topicExchange()).with(ackKey);
     }
 
+
+
     @Bean
     public RabbitTemplate template(Jackson2JsonMessageConverter converter){
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());

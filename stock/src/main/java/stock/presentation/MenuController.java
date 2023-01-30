@@ -2,6 +2,9 @@ package stock.presentation;
 
 import common.dto.DishDTO;
 import common.dto.IngredientDTO;
+import common.messages.PlaceOrderCommand;
+import common.messages.StockCheckRequest;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.web.bind.annotation.*;
 import stock.data.DishRepository;
 import stock.data.IngredientRepository;
@@ -9,6 +12,8 @@ import stock.domain.Dish;
 import stock.domain.Ingredient;
 import common.exception.DishNotFoundException;
 import stock.exception.IngredientNotFoundException;
+import stock.exception.OutOfStockException;
+import stock.infrastructure.StockPublisher;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,13 +23,15 @@ import java.util.Optional;
 @RequestMapping("/menu")
 public class MenuController {
 
-    // Yes this is a controller and a service in one. I deemed it unnecessary to split them for a proof-of-concept
+    // Yes this is a controller and a service in one. I deemed it unnecessary to split them for a proof-of-concept like this
     private final DishRepository dishRepository;
     private final IngredientRepository ingredientRepository;
+    private StockPublisher publisher;
 
     public MenuController(DishRepository dishes, IngredientRepository ingredientRepository) {
         this.dishRepository = dishes;
         this.ingredientRepository = ingredientRepository;
+        this.publisher = new StockPublisher();
     }
 
     @GetMapping("/dishes")
@@ -87,6 +94,48 @@ public class MenuController {
         }
     }
 
+    @RabbitListener(queues = "stockQueue")
+    public void checkStockForDishes(StockCheckRequest request) throws DishNotFoundException, OutOfStockException {
+        List<DishDTO> dishes = new ArrayList<>();
+        List<Dish> actualDishes = new ArrayList<>();
+        // This checks if the dish exists
+        for(String dish : request.getDishList().getDishes()){
+            Optional<Dish> foundDish = dishRepository.findByName(dish);
+            if(!foundDish.isPresent()){
+                throw new DishNotFoundException("Dish not found: " + dish);
+            }
+            // Then we make a new DishDTO list to parse to our returnOrderCommand later
+            dishes.add(new DishDTO(foundDish.get().getName(), foundDish.get().getIngredients()));
+        }
+
+        // Then we need to check the stock. First, we need a list of ingredients
+        List<Ingredient> ingredients = new ArrayList<>();
+        for(Dish dish : actualDishes){
+            for(IngredientDTO ingredient : dish.getIngredients()){
+                Optional<Ingredient> optIng = ingredientRepository.findByName(ingredient.getName());
+                if(optIng.isPresent()){
+                    Ingredient ingr = new Ingredient(optIng.get().getName(), optIng.get().isVegetarian(), optIng.get().getNrInStock());
+                    ingredients.add(ingr);
+                }
+            }
+        }
+        // Then, we need to subtract one of every ingredient to see if it's in stock
+        for(Ingredient ingredient : ingredients){
+            if(ingredient.getNrInStock() > 0){
+                ingredient.take(1);
+            }
+            else{
+                throw new OutOfStockException("Dish not in stock");
+            }
+        }
+
+        // If we get here, all ingredients are stocked up enough, so we can save the transaction
+        this.ingredientRepository.saveAll(ingredients);
+
+        // Now all that remains is to send it to delivery
+        PlaceOrderCommand command = new PlaceOrderCommand(request.getUser(), dishes, request.getAddress());
+        this.publisher.returnOrderCommand(command);
+    }
 
 
 //    public record ReviewDTO(String dish, String reviewerName, int rating) {

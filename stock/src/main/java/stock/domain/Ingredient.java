@@ -24,6 +24,12 @@ public class Ingredient {
         this.vegetarian = vegetarian;
     }
 
+    public Ingredient(String name, boolean vegetarian, int nrInStock){
+        this.name = name;
+        this.vegetarian = vegetarian;
+        this.nrInStock = nrInStock;
+    }
+
     public boolean isVegetarian() {
         return vegetarian;
     }

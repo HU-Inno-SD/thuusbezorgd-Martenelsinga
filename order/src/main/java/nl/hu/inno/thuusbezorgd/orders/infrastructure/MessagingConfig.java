@@ -31,7 +31,6 @@ public class MessagingConfig {
     @Value("AckBindingKey")
     private String ackKey;
 
-
     @Bean
     public Queue ackQueue(){
         return QueueBuilder.durable("ackQueue").build();
@@ -68,6 +67,7 @@ public class MessagingConfig {
     public Binding ackBinding(){
         return BindingBuilder.bind(ackQueue()).to(topicExchange()).with(ackKey);
     }
+
     @Bean
     public RabbitTemplate template(Jackson2JsonMessageConverter converter){
         RabbitTemplate rabbitTemplate = new RabbitTemplate(connectionFactory());
@@ -78,7 +78,7 @@ public class MessagingConfig {
     @Bean
     public Jackson2JsonMessageConverter converter(Jackson2ObjectMapperBuilder builder) {
         // We need to configure a message converter to be used by RabbitTemplate.
-        // We could use any format, but we'll use JSON so it is easier to inspect.
+        // We could use any format, but we'll use JSON so that it is easier to inspect.
         ObjectMapper objectMapper = builder
                 .createXmlMapper(false)
                 .build();
