@@ -70,6 +70,14 @@ public class OrderController {
         this.orderRepository.save(order);
     }
 
+    @GetMapping("/{id}/status")
+    public OrderStatus getStatus(@PathVariable Long id) throws OrderNotFoundException{
+        Optional<Order> optionalOrder = this.orderRepository.findById(id);
+        if(!optionalOrder.isPresent()){
+            throw new OrderNotFoundException("Order not found");
+        }
+        return optionalOrder.get().getStatus();
+    }
 
 //    @GetMapping("report")
 //    public ResponseEntity<List<OrdersPerDayDTO>> getReport(){

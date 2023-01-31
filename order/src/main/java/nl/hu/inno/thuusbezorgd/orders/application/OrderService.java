@@ -5,7 +5,6 @@ import common.Address;
 import common.dto.DishDTO;
 import common.User;
 import common.DishList;
-import common.exception.ServiceDownException;
 import common.messages.*;
 import nl.hu.inno.thuusbezorgd.orders.data.OrderRepository;
 import nl.hu.inno.thuusbezorgd.orders.domain.Order;
@@ -31,13 +30,14 @@ public class OrderService {
 
     @RabbitListener(queues = "orderQueue")
     public void orderValidated(PlaceOrderCommand command){
-        this.repository.save(new Order(command.getUser(), command.getDishList(), LocalDateTime.now()));
+        Order newOrder = new Order(command.getUser(), command.getDishList(), LocalDateTime.now());
+        this.repository.save(newOrder);
         List<String> stringList = new ArrayList<>();
         for(DishDTO dto : command.getDishList()){
             stringList.add(dto.getName());
         }
         DishList list = new DishList(stringList);
-        AddDeliveryCommand newCommand = new AddDeliveryCommand(command.getUser(),command.getAddress(), list);
+        AddDeliveryCommand newCommand = new AddDeliveryCommand(command.getUser(),command.getAddress(), list, newOrder.getId());
         this.publisher.deliver(newCommand);
     }
 

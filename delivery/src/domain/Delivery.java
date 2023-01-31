@@ -1,7 +1,10 @@
 package domain;
 
 
+import common.Address;
+
 import javax.persistence.*;
+import java.util.UUID;
 
 @Entity
 public class Delivery {
@@ -19,20 +22,26 @@ public class Delivery {
         return rider;
     }
 
-    public Long getOrderId() {
+    public UUID getOrderId() {
         return orderId;
     }
+
+    private Address address;
 
     @ManyToOne
     private Rider rider;
 
-    private Long orderId;
+    private UUID orderId;
 
+    public Address getAddress(){
+        return this.address;
+    }
     protected Delivery(){}
 
-    public Delivery(Long orderId, Rider rider){
+    public Delivery(UUID orderId, Rider rider, Address address){
         this.orderId = orderId;
         this.rider = rider;
+        this.address = address;
     }
 
     public boolean isCompleted() {

@@ -6,13 +6,13 @@ import common.User;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Entity
 @Table(name = "orders") //Order is een keyword in sql, so this works around some wonky sql-generator implementations
 public class Order {
     @Id
-    @GeneratedValue
-    private Long id;
+    private UUID id;
 
     @ManyToOne
     private User user;
@@ -36,13 +36,15 @@ public class Order {
     protected Order() {}
 
     public Order(User u, List<DishDTO> dishes, LocalDateTime moment) {
+        this.id = UUID.randomUUID();
         this.user = u;
         this.orderedDishes = dishes;
         this.status = OrderStatus.Received;
         this.orderDate = moment;
     }
 
-    public Long getId() {
+
+    public UUID getId() {
         return id;
     }
 
