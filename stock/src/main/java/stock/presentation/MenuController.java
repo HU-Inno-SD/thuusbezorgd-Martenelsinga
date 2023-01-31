@@ -23,7 +23,7 @@ import java.util.Optional;
 @RequestMapping("/menu")
 public class MenuController {
 
-    // Yes this is a controller and a service in one. I deemed it unnecessary to split them for a proof-of-concept like this
+    // Yes this is a controller and a service in one.
     private final DishRepository dishRepository;
     private final IngredientRepository ingredientRepository;
     private StockPublisher publisher;
