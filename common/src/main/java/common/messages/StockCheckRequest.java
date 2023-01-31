@@ -1,14 +1,15 @@
 package common.messages;
 
 import common.Address;
-import common.DishList;
+
+import java.util.List;
 
 public class StockCheckRequest implements Request {
     private String userName;
-    private DishList dishList;
+    private List<Long> dishList;
     private Address address;
 
-    public StockCheckRequest(String userName, DishList dishList, Address address) {
+    public StockCheckRequest(String userName, List<Long> dishList, Address address) {
         this.userName = userName;
         this.dishList = dishList;
         this.address = address;
@@ -22,11 +23,11 @@ public class StockCheckRequest implements Request {
         this.userName = user;
     }
 
-    public DishList getDishList() {
+    public List<Long> getDishList() {
         return dishList;
     }
 
-    public void setDishList(DishList dishList) {
+    public void setDishList(List<Long> dishList) {
         this.dishList = dishList;
     }
 

@@ -1,7 +1,6 @@
 package nl.hu.inno.thuusbezorgd.orders.presentation;
 
 import common.Address;
-import common.DishList;
 import nl.hu.inno.thuusbezorgd.orders.domain.User;
 import nl.hu.inno.thuusbezorgd.orders.data.UserRepository;
 import common.exception.UserNotFoundException;
@@ -55,8 +54,8 @@ public class OrderController {
 
     @PostMapping("/order")
     @Transactional
-    public void placeOrder(User user, @Validated @RequestBody DishList order, @Validated @RequestBody Address address) throws UserNotFoundException{
-        this.service.placeOrder(user, order, address);
+    public void placeOrder(User user, @Validated @RequestBody List<Long> dishIds, @Validated @RequestBody Address address) throws UserNotFoundException{
+        this.service.placeOrder(user, dishIds, address);
     }
 
     @PutMapping("/{id}/advance")

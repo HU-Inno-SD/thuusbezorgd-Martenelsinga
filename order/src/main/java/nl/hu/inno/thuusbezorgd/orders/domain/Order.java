@@ -29,15 +29,16 @@ public class Order {
         return status;
     }
 
-    @OneToMany
-    private List<DishDTO> orderedDishes;
+    @Column
+    @ElementCollection
+    private List<Long> orderedDishIds;
 
     protected Order() {}
 
-    public Order(User u, List<DishDTO> dishes, LocalDateTime moment) {
+    public Order(User u, List<Long> dishIds, LocalDateTime moment) {
         this.id = UUID.randomUUID();
         this.user = u;
-        this.orderedDishes = dishes;
+        this.orderedDishIds = dishIds;
         this.status = OrderStatus.Received;
         this.orderDate = moment;
     }
@@ -51,13 +52,13 @@ public class Order {
         return user;
     }
 
-    public List<DishDTO> getOrderedDishes() {
-        return orderedDishes;
+    public List<Long> getOrderedDishes() {
+        return orderedDishIds;
     }
 
 
     public void addDish(DishDTO dish) {
-        this.orderedDishes.add(dish);
+        this.orderedDishIds.add(dish.getId());
     }
 
 

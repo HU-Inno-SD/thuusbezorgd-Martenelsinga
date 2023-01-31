@@ -7,10 +7,10 @@ import java.util.List;
 
 public class PlaceOrderCommand implements Command {
     private String userName;
-    private List<DishDTO> dishList;
+    private List<Long> dishList;
     private Address address;
 
-    public PlaceOrderCommand(String userName, List<DishDTO> dishList, Address address) {
+    public PlaceOrderCommand(String userName, List<Long> dishList, Address address) {
         this.userName = userName;
         this.dishList = dishList;
         this.address = address;
@@ -24,11 +24,11 @@ public class PlaceOrderCommand implements Command {
         this.userName = user;
     }
 
-    public List<DishDTO> getDishList() {
+    public List<Long> getDishList() {
         return dishList;
     }
 
-    public void setDishList(List<DishDTO> dishList) {
+    public void setDishList(List<Long> dishList) {
         this.dishList = dishList;
     }
 

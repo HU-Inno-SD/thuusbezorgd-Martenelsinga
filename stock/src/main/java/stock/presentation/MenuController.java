@@ -61,7 +61,7 @@ public class MenuController {
         List<Dish> list = this.dishRepository.findAll();
         List<DishDTO> realList = new ArrayList<>();
         for(Dish i : list){
-            realList.add(new DishDTO(i.getName(), i.getIngredients()));
+            realList.add(new DishDTO(i.getId(), i.getName(), i.getIngredients()));
         }
         return realList;
     }
@@ -70,7 +70,7 @@ public class MenuController {
     public DishDTO getDish(@PathVariable("id") long id) throws DishNotFoundException {
         Optional<Dish> d = this.dishRepository.findById(id);
         if (d.isPresent()) {
-            return new DishDTO(d.get().getName(), d.get().getIngredients());
+            return new DishDTO(d.get().getId(), d.get().getName(), d.get().getIngredients());
         } else {
             throw new DishNotFoundException("Dish not found");
         }
@@ -100,7 +100,7 @@ public class MenuController {
     public DishDTO getDishByName(@PathVariable("name") String name) throws DishNotFoundException{
         Optional<Dish> d = this.dishRepository.findByName(name);
         if (d.isPresent()) {
-            return new DishDTO(d.get().getName(), d.get().getIngredients());
+            return new DishDTO(d.get().getId(), d.get().getName(), d.get().getIngredients());
         } else {
             throw new DishNotFoundException("Dish not found");
         }
@@ -121,13 +121,13 @@ public class MenuController {
         List<DishDTO> dishes = new ArrayList<>();
         List<Dish> actualDishes = new ArrayList<>();
         // This checks if the dish exists
-        for(String dish : request.getDishList().getDishes()){
-            Optional<Dish> foundDish = dishRepository.findByName(dish);
+        for(Long dish : request.getDishList()){
+            Optional<Dish> foundDish = dishRepository.findById(dish);
             if(!foundDish.isPresent()){
                 throw new DishNotFoundException("Dish not found: " + dish);
             }
             // Then we make a new DishDTO list to parse to our returnOrderCommand later
-            dishes.add(new DishDTO(foundDish.get().getName(), foundDish.get().getIngredients()));
+            dishes.add(new DishDTO(foundDish.get().getId(), foundDish.get().getName(), foundDish.get().getIngredients()));
         }
 
         // Then we need to check the stock. First, we need a list of ingredients
@@ -155,7 +155,7 @@ public class MenuController {
         this.ingredientRepository.saveAll(ingredients);
 
         // Now all that remains is to send it to delivery
-        PlaceOrderCommand command = new PlaceOrderCommand(request.getUserName(), dishes, request.getAddress());
+        PlaceOrderCommand command = new PlaceOrderCommand(request.getUserName(), request.getDishList(), request.getAddress());
         this.publisher.returnOrderCommand(command);
     }
 

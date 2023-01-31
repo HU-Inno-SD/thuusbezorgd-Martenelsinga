@@ -1,21 +1,21 @@
 package common.messages;
 
 import common.Address;
-import common.DishList;
 
+import java.util.List;
 import java.util.UUID;
 
 public class AddDeliveryCommand implements Command {
     private String userName;
     private Address address;
-    private DishList dishList;
+    private List<Long> dishIds;
 
     private UUID orderId;
 
-    public AddDeliveryCommand(String userName, Address address, DishList dishList, UUID orderId) {
+    public AddDeliveryCommand(String userName, Address address, List<Long> dishIds, UUID orderId) {
         this.userName = userName;
         this.address = address;
-        this.dishList = dishList;
+        this.dishIds = dishIds;
         this.orderId = orderId;
     }
 
@@ -35,12 +35,12 @@ public class AddDeliveryCommand implements Command {
         this.address = address;
     }
 
-    public DishList getDishList() {
-        return dishList;
+    public List<Long> getDishIds() {
+        return dishIds;
     }
 
-    public void setDishList(DishList dishList) {
-        this.dishList = dishList;
+    public void setDishIds(List<Long> dishIds) {
+        this.dishIds = dishIds;
     }
 
     public UUID getOrderId() {

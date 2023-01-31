@@ -8,16 +8,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-@Entity
 public class DishDTO {
-    @GeneratedValue
-    @Id
     private Long id;
     private String name;
     @ManyToMany
     private List<IngredientDTO> ingredients;
     protected DishDTO(){}
-    public DishDTO(String name, List<IngredientDTO> ingredients){
+    public DishDTO(Long id, String name, List<IngredientDTO> ingredients){
+        this.id = id;
         this.name = name;
         this.ingredients = ingredients;
     }
@@ -40,5 +38,13 @@ public class DishDTO {
             }
         }
         return true;
+    }
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
     }
 }
