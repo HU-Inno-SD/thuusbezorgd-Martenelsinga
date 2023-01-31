@@ -2,30 +2,29 @@ package common.messages;
 
 import common.Address;
 import common.DishList;
-import common.User;
 
 import java.util.UUID;
 
 public class AddDeliveryCommand implements Command {
-    private User user;
+    private String userName;
     private Address address;
     private DishList dishList;
 
     private UUID orderId;
 
-    public AddDeliveryCommand(User user, Address address, DishList dishList, UUID orderId) {
-        this.user = user;
+    public AddDeliveryCommand(String userName, Address address, DishList dishList, UUID orderId) {
+        this.userName = userName;
         this.address = address;
         this.dishList = dishList;
         this.orderId = orderId;
     }
 
-    public User getUser() {
-        return user;
+    public String getUser() {
+        return userName;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUser(String user) {
+        this.userName = user;
     }
 
     public Address getAddress() {

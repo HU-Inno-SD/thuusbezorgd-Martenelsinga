@@ -155,7 +155,7 @@ public class MenuController {
         this.ingredientRepository.saveAll(ingredients);
 
         // Now all that remains is to send it to delivery
-        PlaceOrderCommand command = new PlaceOrderCommand(request.getUser(), dishes, request.getAddress());
+        PlaceOrderCommand command = new PlaceOrderCommand(request.getUserName(), dishes, request.getAddress());
         this.publisher.returnOrderCommand(command);
     }
 

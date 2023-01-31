@@ -12,6 +12,7 @@
             <artifactId>spring-data-mongodb</artifactId>
         </dependency>
     </dependencies>
+
     <parent>
         <groupId>nl.hu.inno</groupId>
         <artifactId>thuusbezorgd-parent</artifactId>

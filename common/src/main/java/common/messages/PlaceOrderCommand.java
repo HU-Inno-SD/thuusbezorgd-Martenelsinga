@@ -1,28 +1,27 @@
 package common.messages;
 
 import common.Address;
-import common.User;
 import common.dto.DishDTO;
 
 import java.util.List;
 
 public class PlaceOrderCommand implements Command {
-    private User user;
+    private String userName;
     private List<DishDTO> dishList;
     private Address address;
 
-    public PlaceOrderCommand(User user, List<DishDTO> dishList, Address address) {
-        this.user = user;
+    public PlaceOrderCommand(String userName, List<DishDTO> dishList, Address address) {
+        this.userName = userName;
         this.dishList = dishList;
         this.address = address;
     }
 
-    public User getUser() {
-        return user;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUserName(String user) {
+        this.userName = user;
     }
 
     public List<DishDTO> getDishList() {

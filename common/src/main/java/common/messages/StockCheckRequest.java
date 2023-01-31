@@ -2,25 +2,24 @@ package common.messages;
 
 import common.Address;
 import common.DishList;
-import common.User;
 
 public class StockCheckRequest implements Request {
-    private User user;
+    private String userName;
     private DishList dishList;
     private Address address;
 
-    public StockCheckRequest(User user, DishList dishList, Address address) {
-        this.user = user;
+    public StockCheckRequest(String userName, DishList dishList, Address address) {
+        this.userName = userName;
         this.dishList = dishList;
         this.address = address;
     }
 
-    public User getUser() {
-        return user;
+    public String getUserName() {
+        return userName;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUser(String user) {
+        this.userName = user;
     }
 
     public DishList getDishList() {

@@ -1,6 +1,7 @@
-package common;
+package nl.hu.inno.thuusbezorgd.orders.application;
 
-import common.UserRepository;
+import nl.hu.inno.thuusbezorgd.orders.data.UserRepository;
+import nl.hu.inno.thuusbezorgd.orders.domain.User;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.support.WebDataBinderFactory;

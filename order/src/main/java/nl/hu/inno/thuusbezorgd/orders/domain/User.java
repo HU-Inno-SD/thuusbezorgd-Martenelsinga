@@ -1,4 +1,4 @@
-package common;
+package nl.hu.inno.thuusbezorgd.orders.domain;
 
 import javax.persistence.Entity;
 import javax.persistence.Id;

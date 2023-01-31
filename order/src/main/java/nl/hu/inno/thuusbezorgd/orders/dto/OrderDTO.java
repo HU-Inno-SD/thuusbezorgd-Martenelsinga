@@ -1,7 +1,7 @@
 package nl.hu.inno.thuusbezorgd.orders.dto;
 
 import common.dto.DishDTO;
-import common.User;
+import nl.hu.inno.thuusbezorgd.orders.domain.User;
 import nl.hu.inno.thuusbezorgd.orders.domain.OrderStatus;
 
 import java.time.LocalDateTime;

@@ -1,7 +1,6 @@
 package nl.hu.inno.thuusbezorgd.orders.domain;
 
 import common.dto.DishDTO;
-import common.User;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
