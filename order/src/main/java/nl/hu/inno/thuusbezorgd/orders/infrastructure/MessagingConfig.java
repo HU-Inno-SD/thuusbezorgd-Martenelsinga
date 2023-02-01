@@ -16,10 +16,10 @@ import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 @Configuration
 public class MessagingConfig {
 
-    @Value("${spring.rabbitmq.host}")
+    @Value("localhost")
     private String host;
 
-    @Value("${spring.rabbitmq.port}")
+    @Value("5672")
     private int port;
     @Value("orderBindingKey")
     private String orderKey;

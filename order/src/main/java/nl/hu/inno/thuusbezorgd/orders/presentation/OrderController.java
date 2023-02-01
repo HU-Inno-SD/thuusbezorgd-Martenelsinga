@@ -16,7 +16,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/orders")
+@RequestMapping("/order")
 public class OrderController {
     private final OrderService service;
     private final OrderRepository orderRepository;
@@ -32,30 +32,27 @@ public class OrderController {
     }
 
     @GetMapping("/user/{name}")
-    public List<Order> getOrders(@PathVariable User user) throws UserNotFoundException {
+    public List<Order> getOrdersByUsername(@PathVariable String name) throws UserNotFoundException {
+        Optional<User> optionalUser = this.users.findByName(name);
+        if(!optionalUser.isPresent()){
+            throw new UserNotFoundException("User not found!");
+        }
+        User user = optionalUser.get();
         List<Order> orders = orderRepository.findByUser(user);
         if(orders.isEmpty()){
-            throw new UserNotFoundException("User not found or they have no orders");
+            throw new UserNotFoundException("User has no orders");
         }
         return orderRepository.findByUser(user);
     }
 
-    @GetMapping("/user/{name}/{id}")
-    public Optional<Order> getOrder(User user, @PathVariable long id) throws UserNotFoundException, OrderNotFoundException {
-        Optional<Order> order = this.orderRepository.findById(id);
-        if(order.isEmpty()){
-            throw new OrderNotFoundException("Order not found");
-        }
-        if(order.get().getUser() != user){
-            throw new UserNotFoundException("User not found");
-        }
-        return order;
-    }
-
     @PostMapping("/order")
     @Transactional
-    public void placeOrder(User user, @Validated @RequestBody List<Long> dishIds, @Validated @RequestBody Address address) throws UserNotFoundException{
-        this.service.placeOrder(user, dishIds, address);
+    public void placeOrder(@Validated @RequestBody String username, @Validated @RequestBody List<Long> dishIds, @Validated @RequestBody Address address) throws UserNotFoundException{
+        Optional<User> optUser = this.users.findByName(username);
+        if(!optUser.isPresent()){
+            throw new UserNotFoundException("User not found!");
+        }
+        this.service.placeOrder(optUser.get(), dishIds, address);
     }
 
     @PutMapping("/{id}/advance")
@@ -69,13 +66,13 @@ public class OrderController {
         this.orderRepository.save(order);
     }
 
-    @GetMapping("/{id}/status")
-    public OrderStatus getStatus(@PathVariable Long id) throws OrderNotFoundException{
+    @GetMapping("/{id}")
+    public Order getOrder(@PathVariable Long id) throws OrderNotFoundException{
         Optional<Order> optionalOrder = this.orderRepository.findById(id);
         if(!optionalOrder.isPresent()){
             throw new OrderNotFoundException("Order not found");
         }
-        return optionalOrder.get().getStatus();
+        return optionalOrder.get();
     }
 
 //    @GetMapping("report")

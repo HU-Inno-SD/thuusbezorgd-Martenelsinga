@@ -56,7 +56,7 @@ public class MenuController {
         this.ingredientRepository.save(ingredient);
     }
 
-    @GetMapping("/dishes")
+    @GetMapping()
     public List<DishDTO> getAllDishes() {
         List<Dish> list = this.dishRepository.findAll();
         List<DishDTO> realList = new ArrayList<>();
@@ -66,7 +66,7 @@ public class MenuController {
         return realList;
     }
 
-    @GetMapping("/dishes/{id}")
+    @GetMapping("/{id}")
     public DishDTO getDish(@PathVariable("id") long id) throws DishNotFoundException {
         Optional<Dish> d = this.dishRepository.findById(id);
         if (d.isPresent()) {
@@ -106,6 +106,8 @@ public class MenuController {
         }
     }
 
+
+    //TODO: Unnecessary?
     @GetMapping("/ingredients/stock/{id}")
     public int getIngredientStock(@PathVariable("id") long id) throws IngredientNotFoundException{
         Optional<Ingredient> i = ingredientRepository.findById(id);

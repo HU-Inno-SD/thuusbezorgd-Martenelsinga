@@ -1,7 +1,6 @@
 package presentation;
 
 import application.DeliveryService;
-import common.User;
 import common.messages.AddDeliveryCommand;
 import data.DeliveryRepository;
 import data.RiderRepository;
@@ -44,8 +43,8 @@ public class DeliveryController {
 
 
     @GetMapping("/user}")
-    public List<DeliveryDTO> deliveries(@RequestBody User user) {
-        List<Delivery> found = deliveries.findByOrder_User(user);
+    public List<DeliveryDTO> deliveries(@RequestBody Long userId) {
+        List<Delivery> found = deliveries.findByOrder_UserId(userId);
         List<DeliveryDTO> dtos = new ArrayList<>();
         for(Delivery d : found){
             dtos.add(new DeliveryDTO(d.getId(), d.isCompleted(), d.getRider()));
