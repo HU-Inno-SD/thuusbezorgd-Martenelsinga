@@ -1,11 +1,11 @@
 package common.messages;
 
 import common.Address;
-import common.dto.DishDTO;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class PlaceOrderCommand implements Command {
+public class PlaceOrderCommand implements Serializable {
     private String userName;
     private List<Long> dishList;
     private Address address;

@@ -2,9 +2,10 @@ package common.messages;
 
 import common.Address;
 
+import java.io.Serializable;
 import java.util.List;
 
-public class StockCheckRequest implements Request {
+public class StockCheckRequest implements Serializable {
     private String userName;
     private List<Long> dishList;
     private Address address;
@@ -29,6 +30,10 @@ public class StockCheckRequest implements Request {
 
     public void setDishList(List<Long> dishList) {
         this.dishList = dishList;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
     }
 
     public Address getAddress() {

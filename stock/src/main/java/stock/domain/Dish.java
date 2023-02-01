@@ -11,7 +11,7 @@ import java.util.*;
 public class Dish {
     @Id
     @GeneratedValue
-    private Long id;
+    private Long dishId;
 
     private String name;
     @ManyToMany(cascade = CascadeType.PERSIST)
@@ -20,29 +20,34 @@ public class Dish {
     protected Dish() {
     }
 
-    public Dish(String name, Ingredient... ingredients) {
-        if (ingredients.length == 0) {
+    public Dish(String name, List<Ingredient> ingredients) {
+        if (ingredients.size() == 0) {
             throw new IllegalArgumentException("Cannot have 0 ingredients");
         }
 
         this.name = name;
-        this.ingredients = Arrays.asList(ingredients);
+        this.ingredients = ingredients;
     }
 
-    public Long getId() {
-        return id;
+    public Dish(Long dishId, String name, List<Ingredient> ingredients) {
+        if (ingredients.size() == 0) {
+            throw new IllegalArgumentException("Cannot have 0 ingredients");
+        }
+        this.dishId = dishId;
+        this.name = name;
+        this.ingredients = ingredients;
+    }
+
+    public Long getDishId() {
+        return dishId;
     }
 
     public String getName() {
         return name;
     }
 
-    public List<IngredientDTO> getIngredients() {
-        List<IngredientDTO> ingr = new ArrayList<>();
-        for(Ingredient i : this.ingredients){
-            ingr.add(new IngredientDTO(i.getName(), i.isVegetarian()));
-        }
-        return ingr;
+    public List<Ingredient> getIngredients() {
+        return this.ingredients;
     }
 
     public boolean isVegetarian() {
@@ -54,12 +59,12 @@ public class Dish {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Dish dish = (Dish) o;
-        return Objects.equals(id, dish.id) && Objects.equals(name, dish.name);
+        return Objects.equals(dishId, dish.dishId) && Objects.equals(name, dish.name);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(id);
+        return Objects.hash(dishId);
     }
 
     public boolean isAvailable(Ingredient ingredient) {

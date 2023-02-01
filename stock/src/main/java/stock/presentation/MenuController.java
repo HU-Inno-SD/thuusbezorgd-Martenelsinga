@@ -1,6 +1,5 @@
 package stock.presentation;
 
-import common.dto.DishDTO;
 import common.dto.IngredientDTO;
 import common.messages.PlaceOrderCommand;
 import common.messages.StockCheckRequest;
@@ -11,6 +10,9 @@ import stock.data.IngredientRepository;
 import stock.domain.Dish;
 import stock.domain.Ingredient;
 import common.exception.DishNotFoundException;
+import stock.dto.RestockObject;
+import stock.exception.DishAlreadyExistsException;
+import stock.exception.IngredientAlreadyExistsException;
 import stock.exception.IngredientNotFoundException;
 import stock.exception.OutOfStockException;
 import stock.infrastructure.StockPublisher;
@@ -22,11 +24,9 @@ import java.util.Optional;
 @RestController
 @RequestMapping("/menu")
 public class MenuController {
-
-    // Yes this is a controller and a service in one.
     private final DishRepository dishRepository;
     private final IngredientRepository ingredientRepository;
-    private StockPublisher publisher;
+    private final StockPublisher publisher;
 
     public MenuController(DishRepository dishes, IngredientRepository ingredientRepository) {
         this.dishRepository = dishes;
@@ -35,42 +35,92 @@ public class MenuController {
     }
 
     @PutMapping("/restock")
-    public void restock(@RequestBody Long id, @RequestBody int amount ) throws IngredientNotFoundException{
-        Optional<Ingredient> ingredient = this.ingredientRepository.findById(id);
-        if(!ingredient.isPresent()){
+    public Ingredient restock(@RequestBody RestockObject restockObject) throws IngredientNotFoundException {
+        Optional<Ingredient> ingredient = this.ingredientRepository.findById(restockObject.getId());
+        if (ingredient.isEmpty()) {
             throw new IngredientNotFoundException("Ingredient not found");
         }
-        int newstock = ingredient.get().getNrInStock() + amount;
+        int newstock = ingredient.get().getNrInStock() + restockObject.getAmount();
         Ingredient realIngredient = new Ingredient(ingredient.get().getName(), ingredient.get().isVegetarian(), newstock);
         realIngredient.setId(ingredient.get().getId());
         this.ingredientRepository.save(realIngredient);
+        return realIngredient;
     }
 
     @PostMapping("/newdish")
-    public void addDish(@RequestBody Dish dish){
-        this.dishRepository.save(dish);
+    public String addDish(@RequestBody Dish dish) throws DishAlreadyExistsException {
+        if (dishRepository.findByName(dish.getName()).isPresent()) {
+            throw new DishAlreadyExistsException("Dish already exists!");
+        }
+        List<Ingredient> ingredients = new ArrayList<>();
+        for (Ingredient ingredient : dish.getIngredients()) {
+            if (ingredientRepository.findByName(ingredient.getName()).isEmpty()) {
+                ingredientRepository.save(ingredient);
+            }
+            ingredients.add(ingredientRepository.findByName(ingredient.getName()).get());
+        }
+        Dish dishToSave = new Dish(dish.getName(), ingredients);
+        this.dishRepository.save(dishToSave);
+        return "Dish successfully saved";
+    }
+
+    @PostMapping("/newdishes")
+    public String addDishes(@RequestBody List<Dish> dishes) throws DishAlreadyExistsException {
+        for (Dish dish : dishes) {
+            if (dishRepository.findByName(dish.getName()).isPresent()) {
+                throw new DishAlreadyExistsException("Dish already exists: " + dish.getName());
+            }
+        }
+        for (Dish dish : dishes) {
+            List<Ingredient> ingredients = new ArrayList<>();
+            for (Ingredient ingredient : dish.getIngredients()) {
+                if (ingredientRepository.findByName(ingredient.getName()).isEmpty()) {
+                    ingredientRepository.save(ingredient);
+                }
+                ingredients.add(ingredientRepository.findByName(ingredient.getName()).get());
+            }
+            Dish dishToSave = new Dish(dish.getName(), ingredients);
+            this.dishRepository.save(dishToSave);
+        }
+        return "Menu successfully updated";
+
     }
 
     @PostMapping("/newingredient")
-    public void addIngredient(@RequestBody Ingredient ingredient){
+    public String addIngredient(@RequestBody Ingredient ingredient) throws IngredientAlreadyExistsException {
+        if (ingredientRepository.findByName(ingredient.getName()).isPresent()) {
+            throw new IngredientAlreadyExistsException("Ingredient already exists!");
+        }
         this.ingredientRepository.save(ingredient);
+        return "Ingredient successfully added to the list";
+    }
+
+    @PostMapping("/newingredients")
+    public String addIngredients(@RequestBody List<Ingredient> ingredients) throws IngredientAlreadyExistsException {
+        for (Ingredient ingredient : ingredients) {
+            if (ingredientRepository.findByName(ingredient.getName()).isPresent()) {
+                throw new IngredientAlreadyExistsException("Ingredient already exists: " + ingredient.getName());
+            }
+        }
+        this.ingredientRepository.saveAll(ingredients);
+        return "Ingredients successfully added to the list";
     }
 
     @GetMapping()
-    public List<DishDTO> getAllDishes() {
+    public List<Dish> getAllDishes() {
         List<Dish> list = this.dishRepository.findAll();
-        List<DishDTO> realList = new ArrayList<>();
-        for(Dish i : list){
-            realList.add(new DishDTO(i.getId(), i.getName(), i.getIngredients()));
+        List<Dish> realList = new ArrayList<>();
+        for (Dish i : list) {
+            realList.add(new Dish(i.getDishId(), i.getName(), i.getIngredients()));
         }
         return realList;
     }
 
     @GetMapping("/{id}")
-    public DishDTO getDish(@PathVariable("id") long id) throws DishNotFoundException {
+    public Dish getDish(@PathVariable("id") long id) throws DishNotFoundException {
         Optional<Dish> d = this.dishRepository.findById(id);
         if (d.isPresent()) {
-            return new DishDTO(d.get().getId(), d.get().getName(), d.get().getIngredients());
+            return new Dish(d.get().getDishId(), d.get().getName(), d.get().getIngredients());
         } else {
             throw new DishNotFoundException("Dish not found");
         }
@@ -80,8 +130,8 @@ public class MenuController {
     public List<IngredientDTO> getIngredients() {
         List<Ingredient> allIngredients = ingredientRepository.findAll();
         List<IngredientDTO> ingredientList = new ArrayList<>();
-        for(Ingredient i : allIngredients){
-            ingredientList.add(new IngredientDTO(i.getName(), i.isVegetarian()));
+        for (Ingredient i : allIngredients) {
+            ingredientList.add(new IngredientDTO(i.getId(), i.getName(), i.isVegetarian()));
         }
         return ingredientList;
     }
@@ -90,65 +140,49 @@ public class MenuController {
     public IngredientDTO getIngredient(@PathVariable("id") long id) throws IngredientNotFoundException {
         Optional<Ingredient> i = ingredientRepository.findById(id);
         if (i.isPresent()) {
-            return new IngredientDTO(i.get().getName(), i.get().isVegetarian());
+            return new IngredientDTO(i.get().getId(), i.get().getName(), i.get().isVegetarian());
         } else {
             throw new IngredientNotFoundException("Ingredient not found");
         }
     }
 
     @GetMapping("/dishes/name/{name}")
-    public DishDTO getDishByName(@PathVariable("name") String name) throws DishNotFoundException{
+    public Dish getDishByName(@PathVariable("name") String name) throws DishNotFoundException {
         Optional<Dish> d = this.dishRepository.findByName(name);
         if (d.isPresent()) {
-            return new DishDTO(d.get().getId(), d.get().getName(), d.get().getIngredients());
+            return new Dish(d.get().getDishId(), d.get().getName(), d.get().getIngredients());
         } else {
             throw new DishNotFoundException("Dish not found");
         }
     }
 
-
-    //TODO: Unnecessary?
-    @GetMapping("/ingredients/stock/{id}")
-    public int getIngredientStock(@PathVariable("id") long id) throws IngredientNotFoundException{
-        Optional<Ingredient> i = ingredientRepository.findById(id);
-        if (i.isPresent()) {
-            return i.get().getNrInStock();
-        } else {
-            throw new IngredientNotFoundException("Ingredient not found");
-        }
-    }
-
     @RabbitListener(queues = "stockQueue")
     public void checkStockForDishes(StockCheckRequest request) throws DishNotFoundException, OutOfStockException {
-        List<DishDTO> dishes = new ArrayList<>();
-        List<Dish> actualDishes = new ArrayList<>();
+        List<Dish> dishes = new ArrayList<>();
         // This checks if the dish exists
-        for(Long dish : request.getDishList()){
+        for (Long dish : request.getDishList()) {
             Optional<Dish> foundDish = dishRepository.findById(dish);
-            if(!foundDish.isPresent()){
+            if (foundDish.isEmpty()) {
                 throw new DishNotFoundException("Dish not found: " + dish);
             }
-            // Then we make a new DishDTO list to parse to our returnOrderCommand later
-            dishes.add(new DishDTO(foundDish.get().getId(), foundDish.get().getName(), foundDish.get().getIngredients()));
+            dishes.add(new Dish(foundDish.get().getDishId(), foundDish.get().getName(), foundDish.get().getIngredients()));
         }
-
         // Then we need to check the stock. First, we need a list of ingredients
         List<Ingredient> ingredients = new ArrayList<>();
-        for(Dish dish : actualDishes){
-            for(IngredientDTO ingredient : dish.getIngredients()){
+        for (Dish dish : dishes) {
+            for (Ingredient ingredient : dish.getIngredients()) {
                 Optional<Ingredient> optIng = ingredientRepository.findByName(ingredient.getName());
-                if(optIng.isPresent()){
-                    Ingredient ingr = new Ingredient(optIng.get().getName(), optIng.get().isVegetarian(), optIng.get().getNrInStock());
+                if (optIng.isPresent()) {
+                    Ingredient ingr = optIng.get();
                     ingredients.add(ingr);
                 }
             }
         }
         // Then, we need to subtract one of every ingredient to see if it's in stock
-        for(Ingredient ingredient : ingredients){
-            if(ingredient.getNrInStock() > 0){
+        for (Ingredient ingredient : ingredients) {
+            if (ingredient.getNrInStock() > 0) {
                 ingredient.take(1);
-            }
-            else{
+            } else {
                 throw new OutOfStockException("Dish not in stock");
             }
         }
@@ -160,40 +194,4 @@ public class MenuController {
         PlaceOrderCommand command = new PlaceOrderCommand(request.getUserName(), request.getDishList(), request.getAddress());
         this.publisher.returnOrderCommand(command);
     }
-
-
-//    public record ReviewDTO(String dish, String reviewerName, int rating) {
-//        public static ReviewDTO fromReview(DishReview review) {
-//            return new ReviewDTO(review.getDish().getName(), review.getUser().getName(), review.getRating().toInt());
-//        }
-//    }
-//
-//    public record PostedReviewDTO(int rating) {
-//
-//    }
-
-//    @GetMapping("/{id}/reviews")
-//    public ResponseEntity<List<ReviewDTO>> getDishReviews(@PathVariable("id") long id) {
-//        Optional<Dish> d = this.dishRepository.findById(id);
-//        if (d.isEmpty()) {
-//            return ResponseEntity.notFound().build();
-//        }
-//
-//        List<DishReview> reviews = this.reviews.findDishReviews(d.get());
-//        return ResponseEntity.ok(reviews.stream().map(ReviewDTO::fromReview).toList());
-//    }
-
-//    @PostMapping("/{id}/reviews")
-//    @Transactional
-//    public ResponseEntity<ReviewDTO> postReview(User user, @PathVariable("id") long id, @RequestBody PostedReviewDTO reviewDTO) {
-//        Optional<Dish> found = this.dishRepository.findById(id);
-//        if (found.isEmpty()) {
-//            return ResponseEntity.notFound().build();
-//        }
-//
-//        DishReview review = new DishReview(found.get(), ReviewRating.fromInt(reviewDTO.rating()), user);
-//        reviews.save(review);
-//
-//        return ResponseEntity.ok(ReviewDTO.fromReview(review));
-//    }
 }

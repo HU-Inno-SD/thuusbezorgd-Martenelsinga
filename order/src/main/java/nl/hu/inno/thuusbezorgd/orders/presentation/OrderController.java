@@ -1,34 +1,39 @@
 package nl.hu.inno.thuusbezorgd.orders.presentation;
 
 import common.Address;
+import common.messages.AddDeliveryCommand;
+import common.messages.PlaceOrderCommand;
+import common.messages.StockCheckRequest;
 import nl.hu.inno.thuusbezorgd.orders.domain.User;
 import nl.hu.inno.thuusbezorgd.orders.data.UserRepository;
 import common.exception.UserNotFoundException;
-import nl.hu.inno.thuusbezorgd.orders.application.OrderService;
 import nl.hu.inno.thuusbezorgd.orders.domain.*;
 import nl.hu.inno.thuusbezorgd.orders.data.OrderRepository;
+import nl.hu.inno.thuusbezorgd.orders.dto.OrderDTO;
 import nl.hu.inno.thuusbezorgd.orders.exception.OrderNotFoundException;
+import nl.hu.inno.thuusbezorgd.orders.infrastructure.OrderPublisher;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
 @RestController
 @RequestMapping("/order")
 public class OrderController {
-    private final OrderService service;
     private final OrderRepository orderRepository;
     private final UserRepository users;
+    private final OrderPublisher publisher;
 
     public OrderController(
                             OrderRepository orders,
-                            UserRepository users,
-                            OrderService service) {
+                            UserRepository users) {
         this.orderRepository = orders;
         this.users = users;
-        this.service = service;
+        this.publisher = new OrderPublisher();
     }
 
     @GetMapping("/user/{name}")
@@ -45,15 +50,34 @@ public class OrderController {
         return orderRepository.findByUser(user);
     }
 
+    @PostMapping("/register")
+    public void registerUser(@RequestBody User user){
+        users.save(user);
+    }
+
     @PostMapping("/order")
     @Transactional
-    public void placeOrder(@Validated @RequestBody String username, @Validated @RequestBody List<Long> dishIds, @Validated @RequestBody Address address) throws UserNotFoundException{
-        Optional<User> optUser = this.users.findByName(username);
+    public String placeOrder(@Validated @RequestBody OrderDTO orderDTO) throws UserNotFoundException{
+        Optional<User> optUser = this.users.findByName(orderDTO.getUserName());
         if(!optUser.isPresent()){
             throw new UserNotFoundException("User not found!");
         }
-        this.service.placeOrder(optUser.get(), dishIds, address);
+        Address address = orderDTO.getAddress();
+        StockCheckRequest request = new StockCheckRequest(optUser.get().getName(), orderDTO.getDishIds(), address);
+        publisher.checkStock(request);
+        return "Order has been received, we'll be back with an update soon!";
     }
+
+    @RabbitListener(queues = "orderQueue")
+    public String orderValidated(PlaceOrderCommand command){
+        Optional<User> optionalUser = users.findByName(command.getUserName());
+        Order newOrder = new Order(optionalUser.get(), command.getDishList(), LocalDateTime.now());
+        this.orderRepository.save(newOrder);
+        AddDeliveryCommand newCommand = new AddDeliveryCommand(command.getUserName(),command.getAddress(), command.getDishList(), newOrder.getId());
+        this.publisher.deliver(newCommand);
+        return "Order has been validated! We'll get to delivering real soon <3";
+    }
+
 
     @PutMapping("/{id}/advance")
     public void advanceOrder(@PathVariable Long id) throws OrderNotFoundException{

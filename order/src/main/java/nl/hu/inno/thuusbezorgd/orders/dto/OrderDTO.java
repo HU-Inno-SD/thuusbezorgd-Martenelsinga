@@ -1,5 +1,6 @@
 package nl.hu.inno.thuusbezorgd.orders.dto;
 
+import common.Address;
 import common.dto.DishDTO;
 import nl.hu.inno.thuusbezorgd.orders.domain.User;
 import nl.hu.inno.thuusbezorgd.orders.domain.OrderStatus;
@@ -8,42 +9,23 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 public class OrderDTO {
-    private Long id;
-    private User user;
-    private LocalDateTime orderDate;
+    private String username;
     private OrderStatus status;
-    private List<DishDTO> orderedDishes;
-
-    public OrderDTO(Long id, User user, LocalDateTime orderDate, OrderStatus status, List<DishDTO> orderedDishes) {
-        this.id = id;
-        this.user = user;
-        this.orderDate = orderDate;
-        this.status = status;
-        this.orderedDishes = orderedDishes;
+    private List<Long> dishIds;
+    private Address address;
+    public OrderDTO(String username, List<Long> dishIds, Address address) {
+        this.username = username;
+        this.status = OrderStatus.Received;
+        this.dishIds = dishIds;
+        this.address = address;
     }
 
-    public Long getId() {
-        return id;
+    public String getUserName() {
+        return username;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
-    public LocalDateTime getOrderDate() {
-        return orderDate;
-    }
-
-    public void setOrderDate(LocalDateTime orderDate) {
-        this.orderDate = orderDate;
+    public void setUser(String username) {
+        this.username = username;
     }
 
     public OrderStatus getStatus() {
@@ -54,11 +36,19 @@ public class OrderDTO {
         this.status = status;
     }
 
-    public List<DishDTO> getOrderedDishes() {
-        return orderedDishes;
+    public List<Long> getDishIds() {
+        return dishIds;
     }
 
-    public void setOrderedDishes(List<DishDTO> orderedDishes) {
-        this.orderedDishes = orderedDishes;
+    public void setDishIds(List<Long> dishIds) {
+        this.dishIds = dishIds;
+    }
+
+    public Address getAddress() {
+        return address;
+    }
+
+    public void setAddress(Address address) {
+        this.address = address;
     }
 }

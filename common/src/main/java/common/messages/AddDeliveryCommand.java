@@ -2,10 +2,11 @@ package common.messages;
 
 import common.Address;
 
+import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
-public class AddDeliveryCommand implements Command {
+public class AddDeliveryCommand implements Serializable {
     private String userName;
     private Address address;
     private List<Long> dishIds;

@@ -12,7 +12,8 @@ public class IngredientDTO {
     private boolean vegetarian;
 
     protected IngredientDTO(){}
-    public IngredientDTO(String name, boolean vegetarian) {
+    public IngredientDTO(Long id, String name, boolean vegetarian) {
+        this.id = id;
         this.name = name;
         this.vegetarian = vegetarian;
     }
@@ -24,4 +25,6 @@ public class IngredientDTO {
     public boolean isVegetarian(){
         return this.vegetarian;
     }
+
+    public Long getid(){return this.id;}
 }
