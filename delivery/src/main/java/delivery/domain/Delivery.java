@@ -1,4 +1,4 @@
-package domain;
+package delivery.domain;
 
 
 import common.Address;

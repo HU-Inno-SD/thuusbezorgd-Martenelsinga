@@ -2,13 +2,16 @@ package common.messages;
 
 import common.Address;
 
+import javax.persistence.ElementCollection;
 import java.io.Serializable;
 import java.util.List;
 
-public class StockCheckRequest implements Serializable {
+public class StockCheckRequest {
     private String userName;
     private List<Long> dishList;
     private Address address;
+
+    protected StockCheckRequest(){}
 
     public StockCheckRequest(String userName, List<Long> dishList, Address address) {
         this.userName = userName;

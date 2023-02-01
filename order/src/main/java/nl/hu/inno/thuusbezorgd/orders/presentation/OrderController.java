@@ -69,13 +69,15 @@ public class OrderController {
     }
 
     @RabbitListener(queues = "orderQueue")
-    public String orderValidated(PlaceOrderCommand command){
+    public void orderValidated(PlaceOrderCommand command){
         Optional<User> optionalUser = users.findByName(command.getUserName());
         Order newOrder = new Order(optionalUser.get(), command.getDishList(), LocalDateTime.now());
+        // We checked the stock and it's there, so we advance the order to 'InPreparation'
+        newOrder.advanceOrder();
         this.orderRepository.save(newOrder);
         AddDeliveryCommand newCommand = new AddDeliveryCommand(command.getUserName(),command.getAddress(), command.getDishList(), newOrder.getId());
         this.publisher.deliver(newCommand);
-        return "Order has been validated! We'll get to delivering real soon <3";
+        System.out.println("Verstuurd naar Delivery!");
     }
 
 
@@ -99,13 +101,4 @@ public class OrderController {
         return optionalOrder.get();
     }
 
-//    @GetMapping("report")
-//    public ResponseEntity<List<OrdersPerDayDTO>> getReport(){
-//        List<ReportService.OrdersPerDayDTO> orders = this.reports.generateOrdersPerDayReport();
-//
-//        return ResponseEntity.ok(orders.stream().map(o -> new OrdersPerDayDTO(o.year(), o.month(), o.day(), o.count())).toList());
-//    }
-//
-//    public record OrdersPerDayDTO(int year, int month, int day, int orders) {
-//    }
 }

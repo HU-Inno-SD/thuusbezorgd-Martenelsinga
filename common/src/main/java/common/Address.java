@@ -1,10 +1,11 @@
 package common;
 
 import javax.persistence.Embeddable;
+import java.io.Serializable;
 import java.util.Objects;
 
 @Embeddable
-public class Address {
+public class Address implements Serializable {
     private String city;
     private String street;
     private String housenr;

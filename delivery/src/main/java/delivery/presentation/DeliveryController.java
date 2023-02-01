@@ -1,14 +1,14 @@
-package presentation;
+package delivery.presentation;
 
-import application.DeliveryService;
 import common.messages.AddDeliveryCommand;
-import data.DeliveryRepository;
-import data.RiderRepository;
-import domain.*;
+import delivery.data.DeliveryRepository;
+import delivery.data.RiderRepository;
+import delivery.domain.*;
 
-import dto.DeliveryDTO;
-import exception.DeliveryNotFoundException;
-import infrastructure.DeliveryPublisher;
+import delivery.dto.DeliveryDTO;
+import delivery.exception.DeliveryNotFoundException;
+import delivery.exception.NoRidersAvailableException;
+import delivery.infrastructure.DeliveryPublisher;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,32 +20,28 @@ import java.util.Optional;
 @RequestMapping("/deliveries")
 public class DeliveryController {
 
-    private final DeliveryService deliveryService;
     private final DeliveryRepository deliveries;
     private final RiderRepository riders;
+    private final DeliveryPublisher publisher;
 
-    public DeliveryController(DeliveryService deliveryService, DeliveryRepository deliveries, RiderRepository riders) {
-        this.deliveryService = deliveryService;
+    public DeliveryController(DeliveryRepository deliveries, RiderRepository riders) {
         this.deliveries = deliveries;
-        DeliveryPublisher publisher = new DeliveryPublisher();
+        this.publisher = new DeliveryPublisher();
         this.riders = riders;
     }
 
     @RabbitListener(queues = "deliveryQueue")
     public void fixDelivery(AddDeliveryCommand command) {
-        this.deliveryService.scheduleDelivery(command.getOrderId(), command.getAddress());
+        System.out.println("Aangekomen in delivery!");
+//        Optional<Rider> rider = this.riders.findFirstByNrOfDeliveries();
+//        if(rider.isPresent()){
+//            Delivery delivery = new Delivery(command.getOrderId(), rider.get(), command.getAddress());
+//            deliveries.save(delivery);
+//        } else {
+//            throw new NoRidersAvailableException("No riders currently available");
+//        }
     }
 
-
-    @GetMapping("/user}")
-    public List<DeliveryDTO> deliveries(@RequestBody Long userId) {
-        List<Delivery> found = deliveries.findByOrder_UserId(userId);
-        List<DeliveryDTO> dtos = new ArrayList<>();
-        for (Delivery d : found) {
-            dtos.add(new DeliveryDTO(d.getId(), d.isCompleted(), d.getRider()));
-        }
-        return dtos;
-    }
 
     @GetMapping("{id}")
     public DeliveryDTO getDelivery(@PathVariable long id) throws DeliveryNotFoundException {

@@ -1,6 +1,6 @@
-package dto;
+package delivery.dto;
 
-import domain.Rider;
+import delivery.domain.Rider;
 
 public class DeliveryDTO {
     private Long id;

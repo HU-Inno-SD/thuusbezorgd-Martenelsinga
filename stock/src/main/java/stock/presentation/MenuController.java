@@ -4,6 +4,7 @@ import common.dto.IngredientDTO;
 import common.messages.PlaceOrderCommand;
 import common.messages.StockCheckRequest;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
+import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
 import org.springframework.web.bind.annotation.*;
 import stock.data.DishRepository;
 import stock.data.IngredientRepository;
@@ -17,6 +18,7 @@ import stock.exception.IngredientNotFoundException;
 import stock.exception.OutOfStockException;
 import stock.infrastructure.StockPublisher;
 
+import javax.transaction.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -28,10 +30,13 @@ public class MenuController {
     private final IngredientRepository ingredientRepository;
     private final StockPublisher publisher;
 
+    private final Jackson2JsonMessageConverter converter;
+
     public MenuController(DishRepository dishes, IngredientRepository ingredientRepository) {
         this.dishRepository = dishes;
         this.ingredientRepository = ingredientRepository;
         this.publisher = new StockPublisher();
+        this.converter = new Jackson2JsonMessageConverter();
     }
 
     @PutMapping("/restock")
@@ -156,17 +161,20 @@ public class MenuController {
         }
     }
 
+    @Transactional
     @RabbitListener(queues = "stockQueue")
-    public void checkStockForDishes(StockCheckRequest request) throws DishNotFoundException, OutOfStockException {
+    public void checkStockForDishes(StockCheckRequest request){
         List<Dish> dishes = new ArrayList<>();
         // This checks if the dish exists
         for (Long dish : request.getDishList()) {
             Optional<Dish> foundDish = dishRepository.findById(dish);
             if (foundDish.isEmpty()) {
-                throw new DishNotFoundException("Dish not found: " + dish);
+                this.publisher.throwError("Dish not found: " + dish);
+                return;
             }
-            dishes.add(new Dish(foundDish.get().getDishId(), foundDish.get().getName(), foundDish.get().getIngredients()));
+            dishes.add(foundDish.get());
         }
+
         // Then we need to check the stock. First, we need a list of ingredients
         List<Ingredient> ingredients = new ArrayList<>();
         for (Dish dish : dishes) {
@@ -178,12 +186,14 @@ public class MenuController {
                 }
             }
         }
+
         // Then, we need to subtract one of every ingredient to see if it's in stock
         for (Ingredient ingredient : ingredients) {
             if (ingredient.getNrInStock() > 0) {
                 ingredient.take(1);
             } else {
-                throw new OutOfStockException("Dish not in stock");
+                this.publisher.throwError("Ingredient not in stock: " + ingredient);
+                return;
             }
         }
 

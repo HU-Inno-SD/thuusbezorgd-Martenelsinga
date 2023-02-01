@@ -6,13 +6,14 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
-public class AddDeliveryCommand implements Serializable {
+public class AddDeliveryCommand{
     private String userName;
     private Address address;
     private List<Long> dishIds;
 
     private UUID orderId;
 
+    protected AddDeliveryCommand(){}
     public AddDeliveryCommand(String userName, Address address, List<Long> dishIds, UUID orderId) {
         this.userName = userName;
         this.address = address;

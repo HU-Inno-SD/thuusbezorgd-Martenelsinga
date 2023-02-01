@@ -1,13 +1,13 @@
-package data;
+package delivery.data;
 
 
-import domain.Rider;
+import delivery.domain.Rider;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 import java.util.Optional;
 
 public interface RiderRepository extends JpaRepository<Rider, Long> {
-    Optional<Rider> findByRiderId(Long RiderId);
-    Optional<Rider> findFirstByNrOfDeliveriesAsc();
+    Optional<Rider> findById(Long RiderId);
+//    Optional<Rider> findFirstByNrOfDeliveries();
 }

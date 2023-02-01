@@ -14,7 +14,7 @@ public class Dish {
     private Long dishId;
 
     private String name;
-    @ManyToMany(cascade = CascadeType.PERSIST)
+    @ManyToMany(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Ingredient> ingredients;
 
     protected Dish() {

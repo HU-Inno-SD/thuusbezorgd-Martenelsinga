@@ -5,10 +5,12 @@ import common.Address;
 import java.io.Serializable;
 import java.util.List;
 
-public class PlaceOrderCommand implements Serializable {
+public class PlaceOrderCommand{
     private String userName;
     private List<Long> dishList;
     private Address address;
+
+    protected PlaceOrderCommand(){}
 
     public PlaceOrderCommand(String userName, List<Long> dishList, Address address) {
         this.userName = userName;
