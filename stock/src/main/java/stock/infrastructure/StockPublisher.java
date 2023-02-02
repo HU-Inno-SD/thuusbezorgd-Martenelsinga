@@ -1,6 +1,7 @@
 package stock.infrastructure;
 
 import common.messages.PlaceOrderCommand;
+import common.messages.RandomStockCheckReply;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -25,5 +26,9 @@ public class StockPublisher {
 
     public void returnOrderCommand(PlaceOrderCommand command){
         template.convertAndSend("topicExchange", "orderBindingKey", command);
+    }
+
+    public void stockCheckReply(RandomStockCheckReply reply){
+        template.convertAndSend("topicExchange", "orderBindingKey", reply);
     }
 }

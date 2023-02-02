@@ -26,11 +26,10 @@ public class DeliveryController {
         this.publisher = new DeliveryPublisher();
     }
 
-    // TODO: Deze doet nog niks met het bericht
     @RabbitListener(queues = "deliveryQueue")
     public void fixDelivery(AddDeliveryCommand command) {
         if(this.deliveries.findByOrderId(command.getOrderId()).isPresent()){
-            publisher.throwError(new DeliveryError("OrderId " + command.getOrderId() + " already has an associated delivery"));
+//            publisher.throwError(new DeliveryError("OrderId " + command.getOrderId() + " already has an associated delivery"));
             return;
         }
         Delivery delivery = new Delivery(command.getOrderId(), command.getAddress());

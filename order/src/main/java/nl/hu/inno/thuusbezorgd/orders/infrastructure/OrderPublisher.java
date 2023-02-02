@@ -1,6 +1,7 @@
 package nl.hu.inno.thuusbezorgd.orders.infrastructure;
 
 import common.messages.AddDeliveryCommand;
+import common.messages.RandomStockCheck;
 import common.messages.StockCheckRequest;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
@@ -34,5 +35,9 @@ public class OrderPublisher {
         template.convertSendAndReceive("topicExchange", "deliveryBindingKey", "ack");
         template.convertSendAndReceive("topicExchange", "stockBindingKey", "ack");
         return "hello";
+    }
+
+    public void randomStockCheck(RandomStockCheck check){
+        template.convertAndSend("topicExchange", "stockBindingKey", check);
     }
 }

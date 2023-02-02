@@ -1,7 +1,10 @@
 package stock.presentation;
 
+import common.StockObject;
 import common.dto.IngredientDTO;
 import common.messages.PlaceOrderCommand;
+import common.messages.RandomStockCheck;
+import common.messages.RandomStockCheckReply;
 import common.messages.StockCheckRequest;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.amqp.support.converter.Jackson2JsonMessageConverter;
@@ -159,6 +162,35 @@ public class MenuController {
         } else {
             throw new DishNotFoundException("Dish not found");
         }
+    }
+
+
+    // This method checks ALL dishes' stock
+    @RabbitListener(queues = "stockQueue")
+    public void randomStockCheck(RandomStockCheck check){
+        List<Dish> dishes = this.dishRepository.findAll();
+        List<StockObject> stock = new ArrayList<>();
+        for(Dish d : dishes){
+            int lowestStock = -1;
+            List<Ingredient> ingredients = d.getIngredients();
+            List<Ingredient> ingredientsWithStock = new ArrayList<>();
+            for(Ingredient i : ingredients){
+                ingredientsWithStock.add(ingredientRepository.findByName(i.getName()).get());
+            }
+            for(Ingredient p : ingredientsWithStock){
+                if(lowestStock == -1){
+                    lowestStock = p.getNrInStock();
+                }
+                else{
+                    if(lowestStock < p.getNrInStock()){
+                        lowestStock = p.getNrInStock();
+                    }
+                }
+            }
+            stock.add(new StockObject(d.getDishId(), lowestStock));
+        }
+        RandomStockCheckReply reply = new RandomStockCheckReply(stock);
+        this.publisher.stockCheckReply(reply);
     }
 
     @Transactional

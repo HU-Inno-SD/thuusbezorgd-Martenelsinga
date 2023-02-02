@@ -1,10 +1,8 @@
 package nl.hu.inno.thuusbezorgd.orders.presentation;
 
 import common.Address;
-import common.messages.AddDeliveryCommand;
-import common.messages.ConfirmDeliveryCommand;
-import common.messages.PlaceOrderCommand;
-import common.messages.StockCheckRequest;
+import common.StockObject;
+import common.messages.*;
 import nl.hu.inno.thuusbezorgd.orders.domain.User;
 import nl.hu.inno.thuusbezorgd.orders.data.UserRepository;
 import common.exception.UserNotFoundException;
@@ -19,6 +17,7 @@ import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -28,6 +27,7 @@ public class OrderController {
     private final OrderRepository orderRepository;
     private final UserRepository users;
     private final OrderPublisher publisher;
+    private List<StockObject> stock;
 
     public OrderController(
                             OrderRepository orders,
@@ -35,6 +35,9 @@ public class OrderController {
         this.orderRepository = orders;
         this.users = users;
         this.publisher = new OrderPublisher();
+        this.stock = new ArrayList<>();
+        randomStockCheck(3);
+
     }
 
     @GetMapping("/user/{name}")
@@ -65,8 +68,35 @@ public class OrderController {
         }
         Address address = orderDTO.getAddress();
         StockCheckRequest request = new StockCheckRequest(optUser.get().getName(), orderDTO.getDishIds(), address);
+        for(Long dishId : orderDTO.getDishIds()){
+            for(StockObject s : stock){
+                if(s.getDishId() == dishId){
+                    if(s.getNrInStock() > 5){
+                        s.takeOne();
+                    }
+                    else{
+                        return "Sorry, we don't have enough of " + dishId + " right now";
+                    }
+                }
+            }
+        }
         publisher.checkStock(request);
-        return "Order has been received, we'll be back with an update soon!";
+        this.randomStockCheck(3);
+        return "Order has been received";
+    }
+
+    @GetMapping("/startup")
+    private void randomStockCheck(int override){
+        double random = Math.random() * 5;
+        int num = (int)Math.round(random);
+        if(num == 3 || override == 3){
+            publisher.randomStockCheck(new RandomStockCheck("randomStockCheck"));
+        }
+    }
+
+    @RabbitListener(queues = "orderQueue")
+    public void randomStockCheckReply(RandomStockCheckReply reply){
+        this.stock = reply.getStock();
     }
 
     @RabbitListener(queues = "orderQueue")
@@ -83,11 +113,13 @@ public class OrderController {
     @RabbitListener(queues = "orderQueue")
     public void deliveryValidated(ConfirmDeliveryCommand command){
         Optional<Order> optOrder = orderRepository.findById(command.getOrderId());
-        Order order = optOrder.get();
-        order.setDeliveryId(command.getDeliveryId());
-        // A delivery has been assigned to the order, so we can advance it to 'Underway'
-        order.advanceOrder();
-        this.orderRepository.save(order);
+        if(optOrder.isPresent()){
+            Order order = optOrder.get();
+            order.setDeliveryId(command.getDeliveryId());
+            // A delivery has been assigned to the order, so we can advance it to 'Underway'
+            order.advanceOrder();
+            this.orderRepository.save(order);
+        }
     }
 
 
