@@ -1,5 +1,7 @@
 package delivery.infrastructure;
 
+import common.messages.ConfirmDeliveryCommand;
+import common.messages.DeliveryError;
 import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
 import org.springframework.amqp.rabbit.connection.ConnectionFactory;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
@@ -17,8 +19,11 @@ public class DeliveryPublisher {
         this.template = template;
     }
 
-    public void publish(){
-        String s = new String("aap");
-        template.convertAndSend("topicExchange", "deliveryBindingKey", s);
+    public void confirmDelivery(ConfirmDeliveryCommand command){
+        template.convertAndSend("topicExchange", "orderBindingKey", command);
+    }
+
+    public void throwError(DeliveryError error){
+        template.convertAndSend("topicExchange", "orderBindingKey", error);
     }
 }

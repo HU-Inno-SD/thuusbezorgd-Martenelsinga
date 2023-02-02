@@ -1,18 +1,17 @@
 package delivery.presentation;
 
 import common.messages.AddDeliveryCommand;
+import common.messages.ConfirmDeliveryCommand;
+import common.messages.DeliveryError;
 import delivery.data.DeliveryRepository;
 import delivery.data.RiderRepository;
 import delivery.domain.*;
 
-import delivery.dto.DeliveryDTO;
 import delivery.exception.DeliveryNotFoundException;
-import delivery.exception.NoRidersAvailableException;
 import delivery.infrastructure.DeliveryPublisher;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -30,27 +29,28 @@ public class DeliveryController {
         this.riders = riders;
     }
 
+    // TODO: Deze doet nog niks met het bericht
     @RabbitListener(queues = "deliveryQueue")
     public void fixDelivery(AddDeliveryCommand command) {
-        System.out.println("Aangekomen in delivery!");
-//        Optional<Rider> rider = this.riders.findFirstByNrOfDeliveries();
-//        if(rider.isPresent()){
-//            Delivery delivery = new Delivery(command.getOrderId(), rider.get(), command.getAddress());
-//            deliveries.save(delivery);
-//        } else {
-//            throw new NoRidersAvailableException("No riders currently available");
-//        }
+        if(this.deliveries.findByOrderId(command.getOrderId()).isPresent()){
+            publisher.throwError(new DeliveryError("OrderId " + command.getOrderId() + " already has an associated delivery"));
+            return;
+        }
+        Delivery delivery = new Delivery(command.getOrderId(), command.getAddress());
+        deliveries.save(delivery);
+        ConfirmDeliveryCommand newCommand = new ConfirmDeliveryCommand(command.getUser(), command.getOrderId(), delivery.getId());
+        publisher.confirmDelivery(newCommand);
     }
 
 
     @GetMapping("{id}")
-    public DeliveryDTO getDelivery(@PathVariable long id) throws DeliveryNotFoundException {
+    public Delivery getDelivery(@PathVariable long id) throws DeliveryNotFoundException {
         Optional<Delivery> delivery = this.deliveries.findById(id);
 
         if (delivery.isEmpty()) {
             throw new DeliveryNotFoundException("Delivery not found");
         }
-        return new DeliveryDTO(delivery.get().getId(), delivery.get().isCompleted(), delivery.get().getRider());
+        return new Delivery(delivery.get().getId(), delivery.get().getOrderId(), delivery.get().isCompleted(), delivery.get().getAddress());
     }
 
     @GetMapping()

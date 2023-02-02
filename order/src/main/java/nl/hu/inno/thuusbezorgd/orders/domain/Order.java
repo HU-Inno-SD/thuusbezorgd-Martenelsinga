@@ -33,6 +33,8 @@ public class Order {
     @ElementCollection
     private List<Long> orderedDishIds;
 
+    private UUID deliveryId;
+
     protected Order() {}
 
     public Order(User u, List<Long> dishIds, LocalDateTime moment) {
@@ -80,7 +82,15 @@ public class Order {
         this.status = this.status.next();
     }
 
-//    public void process(LocalDateTime orderMoment) {
+    public UUID getDeliveryId() {
+        return deliveryId;
+    }
+
+    public void setDeliveryId(UUID deliveryId) {
+        this.deliveryId = deliveryId;
+    }
+
+    //    public void process(LocalDateTime orderMoment) {
 //        this.orderDate = orderMoment;
 //        for (DishDTO d : this.getOrderedDishes()) {
 //            d.prepare();

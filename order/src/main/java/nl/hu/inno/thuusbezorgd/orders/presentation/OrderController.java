@@ -2,6 +2,7 @@ package nl.hu.inno.thuusbezorgd.orders.presentation;
 
 import common.Address;
 import common.messages.AddDeliveryCommand;
+import common.messages.ConfirmDeliveryCommand;
 import common.messages.PlaceOrderCommand;
 import common.messages.StockCheckRequest;
 import nl.hu.inno.thuusbezorgd.orders.domain.User;
@@ -77,7 +78,16 @@ public class OrderController {
         this.orderRepository.save(newOrder);
         AddDeliveryCommand newCommand = new AddDeliveryCommand(command.getUserName(),command.getAddress(), command.getDishList(), newOrder.getId());
         this.publisher.deliver(newCommand);
-        System.out.println("Verstuurd naar Delivery!");
+    }
+
+    @RabbitListener(queues = "orderQueue")
+    public void deliveryValidated(ConfirmDeliveryCommand command){
+        Optional<Order> optOrder = orderRepository.findByOrderId(command.getOrderId());
+        Order order = optOrder.get();
+        order.setDeliveryId(command.getDeliveryId());
+        // A delivery has been assigned to the order, so we can advance it to 'Underway'
+        order.advanceOrder();
+        this.orderRepository.save(order);
     }
 
 

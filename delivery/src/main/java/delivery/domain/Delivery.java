@@ -10,17 +10,14 @@ import java.util.UUID;
 public class Delivery {
     @Id
     @GeneratedValue
-    private Long id;
+    private UUID id;
 
     private boolean completed;
 
-    public Long getId() {
+    public UUID getId() {
         return id;
     }
 
-    public Rider getRider() {
-        return rider;
-    }
 
     public UUID getOrderId() {
         return orderId;
@@ -28,8 +25,6 @@ public class Delivery {
 
     private Address address;
 
-    @ManyToOne
-    private Rider rider;
 
     private UUID orderId;
 
@@ -38,9 +33,15 @@ public class Delivery {
     }
     protected Delivery(){}
 
-    public Delivery(UUID orderId, Rider rider, Address address){
+    public Delivery(UUID orderId, Address address){
         this.orderId = orderId;
-        this.rider = rider;
+        this.address = address;
+    }
+
+    public Delivery(UUID deliveryId, UUID orderId, boolean completed, Address address){
+        this.id = deliveryId;
+        this.orderId = orderId;
+        this.completed = completed;
         this.address = address;
     }
 
