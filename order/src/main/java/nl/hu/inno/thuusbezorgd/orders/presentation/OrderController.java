@@ -82,7 +82,7 @@ public class OrderController {
 
     @RabbitListener(queues = "orderQueue")
     public void deliveryValidated(ConfirmDeliveryCommand command){
-        Optional<Order> optOrder = orderRepository.findByOrderId(command.getOrderId());
+        Optional<Order> optOrder = orderRepository.findById(command.getOrderId());
         Order order = optOrder.get();
         order.setDeliveryId(command.getDeliveryId());
         // A delivery has been assigned to the order, so we can advance it to 'Underway'

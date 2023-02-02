@@ -4,7 +4,6 @@ import common.messages.AddDeliveryCommand;
 import common.messages.ConfirmDeliveryCommand;
 import common.messages.DeliveryError;
 import delivery.data.DeliveryRepository;
-import delivery.data.RiderRepository;
 import delivery.domain.*;
 
 import delivery.exception.DeliveryNotFoundException;
@@ -20,13 +19,11 @@ import java.util.Optional;
 public class DeliveryController {
 
     private final DeliveryRepository deliveries;
-    private final RiderRepository riders;
     private final DeliveryPublisher publisher;
 
-    public DeliveryController(DeliveryRepository deliveries, RiderRepository riders) {
+    public DeliveryController(DeliveryRepository deliveries) {
         this.deliveries = deliveries;
         this.publisher = new DeliveryPublisher();
-        this.riders = riders;
     }
 
     // TODO: Deze doet nog niks met het bericht
@@ -63,8 +60,4 @@ public class DeliveryController {
         this.deliveries.save(delivery);
     }
 
-    @PostMapping("/riders/new")
-    public void addRider(@RequestBody Rider rider) {
-        this.riders.save(rider);
-    }
 }
